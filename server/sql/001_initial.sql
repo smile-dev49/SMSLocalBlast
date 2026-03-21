@@ -1,6 +1,6 @@
 -- SMS LocalBlast — initial schema (v0.1)
--- Run after: createdb sms_localblast
--- psql $DATABASE_URL -f sql/001_initial.sql
+-- Apply in Supabase: Dashboard → SQL Editor → paste → Run
+-- (No local PostgreSQL / DATABASE_URL required.)
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 

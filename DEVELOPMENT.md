@@ -3,16 +3,15 @@
 ## Done (v0.1 scaffold)
 
 - [x] Monorepo folder `sms-localblast/`
-- [x] Express API + `/api/health` + DB ping when `DATABASE_URL` is set
-- [x] SQL migration `server/sql/001_initial.sql` (users, devices, messages)
-- [x] `npm run db:migrate` script
+- [x] Express API + `/api/health` (Supabase connectivity)
+- [x] SQL reference `server/sql/001_initial.sql` — run in **Supabase SQL Editor**
+- [x] Env: `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` only (no `DATABASE_URL`)
 
-## Next (your turn + we continue in chat)
+## Next
 
-1. Install PostgreSQL locally (or use Supabase), create DB `sms_localblast`.
-2. Copy `server/.env.example` → `server/.env`, set `DATABASE_URL`.
-3. Run: `cd server && npm run db:migrate`
-4. Next implementation session: **auth** (register/login JWT) + **enqueue/pull** queue API.
+1. Ensure tables exist in Supabase (run `sql/001_initial.sql` if not already).
+2. Optional: set `SUPABASE_SERVICE_ROLE_KEY` in `.env` for server routes that must bypass RLS (never expose to clients).
+3. Implement **auth** + **message queue** using Supabase JS (and/or RLS + user JWTs).
 
 ## Full product (from client checklist — later phases)
 

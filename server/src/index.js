@@ -1,7 +1,7 @@
 import { createApp } from './app.js';
-import { env, assertDatabaseConfigured } from './config/env.js';
+import { env, assertSupabaseConfigured } from './config/env.js';
 
-assertDatabaseConfigured();
+assertSupabaseConfigured();
 
 const app = createApp();
 

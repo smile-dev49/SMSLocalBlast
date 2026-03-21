@@ -5,13 +5,15 @@
 - [x] Monorepo folder `sms-localblast/`
 - [x] Express API + `/api/health` (Supabase connectivity)
 - [x] SQL reference `server/sql/001_initial.sql` — run in **Supabase SQL Editor**
-- [x] Env: `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` only (no `DATABASE_URL`)
+- [x] Env: Supabase URL + publishable + **service_role** + **JWT_SECRET** (see `server/SETUP.md`)
+- [x] `POST /api/auth/register`, `/login` — JWT
+- [x] `POST /api/messages`, `POST /api/messages/claim-next`, `PATCH .../status`
 
 ## Next
 
-1. Ensure tables exist in Supabase (run `sql/001_initial.sql` if not already).
-2. Optional: set `SUPABASE_SERVICE_ROLE_KEY` in `.env` for server routes that must bypass RLS (never expose to clients).
-3. Implement **auth** + **message queue** using Supabase JS (and/or RLS + user JWTs).
+1. Run `server/sql/002_claim_next_message.sql` in Supabase (if not yet).
+2. Excel add-in: login + enqueue from sheet.
+3. Android gateway: poll `claim-next`, send SMS, `PATCH` status.
 
 ## Full product (from client checklist — later phases)
 

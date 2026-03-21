@@ -1,8 +1,16 @@
--- SMS LocalBlast — initial schema (v0.1)
--- Apply in Supabase: Dashboard → SQL Editor → paste → Run
--- (No local PostgreSQL / DATABASE_URL required.)
-
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'message_status') THEN
+    CREATE TYPE message_status AS ENUM (
+      'pending',
+      'assigned',
+      'sent',
+      'delivered',
+      'failed'
+    );
+  END IF;
+END
+$$;
 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -21,14 +29,6 @@ CREATE TABLE IF NOT EXISTS devices (
   device_token TEXT,
   last_seen_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TYPE message_status AS ENUM (
-  'pending',
-  'assigned',
-  'sent',
-  'delivered',
-  'failed'
 );
 
 CREATE TABLE IF NOT EXISTS messages (

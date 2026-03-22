@@ -46,7 +46,7 @@ Based on **job description**, **15 spec docx files**, and **Master Definitive Ch
 
 | # | Item | Source | Priority |
 |---|------|--------|----------|
-| 1 | **Android APK** | Doc 1 | High |
+| 1 | **Android APK** | Doc 1 | ✅ Done (android/) |
 | 2 | **iOS Shortcut** | Doc 1 | High |
 | 3 | Poll claim-next, send SMS natively, PATCH status | — | — |
 | 4 | MMS (image attachment) | Doc 15 | Medium |

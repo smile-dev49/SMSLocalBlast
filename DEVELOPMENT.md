@@ -9,11 +9,12 @@
 - [x] `POST /api/auth/register`, `/login` — JWT
 - [x] `POST /api/messages`, `POST /api/messages/claim-next`, `PATCH .../status`
 - [x] Excel add-in: login + enqueue from sheet (see `excel-addin/README.md`)
+- [x] Android gateway: poll claim-next, send SMS, PATCH status (see `android/README.md`)
 
 ## Next
 
-1. Android gateway: poll `claim-next`, send SMS, `PATCH` status.
-2. Admin web dashboard.
+1. Admin web dashboard.
+2. Web Installer (3-step).
 
 ## Full product (from client checklist — later phases)
 

@@ -8,6 +8,7 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 |--------|---------|
 | `server/` | Node.js + Express API (Supabase for DB/API) |
 | `excel-addin/` | Office.js task pane (login + enqueue from sheet) |
+| `android/` | Android gateway app (poll, send SMS, report status) |
 | `admin-web/` | Admin dashboard (to be added) |
 
 ## Quick start (API)

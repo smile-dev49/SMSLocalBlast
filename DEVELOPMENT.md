@@ -8,12 +8,12 @@
 - [x] Env: Supabase URL + publishable + **service_role** + **JWT_SECRET** (see `server/SETUP.md`)
 - [x] `POST /api/auth/register`, `/login` — JWT
 - [x] `POST /api/messages`, `POST /api/messages/claim-next`, `PATCH .../status`
+- [x] Excel add-in: login + enqueue from sheet (see `excel-addin/README.md`)
 
 ## Next
 
-1. Run `server/sql/002_claim_next_message.sql` in Supabase (if not yet).
-2. Excel add-in: login + enqueue from sheet.
-3. Android gateway: poll `claim-next`, send SMS, `PATCH` status.
+1. Android gateway: poll `claim-next`, send SMS, `PATCH` status.
+2. Admin web dashboard.
 
 ## Full product (from client checklist — later phases)
 

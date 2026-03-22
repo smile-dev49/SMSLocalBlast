@@ -7,7 +7,7 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | Folder | Purpose |
 |--------|---------|
 | `server/` | Node.js + Express API (Supabase for DB/API) |
-| `excel-addin/` | Office.js task pane (to be added) |
+| `excel-addin/` | Office.js task pane (login + enqueue from sheet) |
 | `admin-web/` | Admin dashboard (to be added) |
 
 ## Quick start (API)

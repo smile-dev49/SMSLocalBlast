@@ -5,14 +5,18 @@ import { env } from './config/env.js';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { messagesRouter } from './routes/messages.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export function createApp() {
   const app = express();
 
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: false }));
   app.use(
     cors({
-      origin: [env.publicOrigin, /^https:\/\/localhost:\d+$/],
+      origin: true,
       credentials: true,
     })
   );
@@ -31,6 +35,19 @@ export function createApp() {
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/messages', messagesRouter);
+
+  const addinPath = path.join(__dirname, '..', '..', 'excel-addin');
+  const iconPng = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    'base64'
+  );
+  app.get('/add-in/assets/icon-32.png', (_req, res) => {
+    res.type('image/png').send(iconPng);
+  });
+  app.get('/add-in/assets/icon-64.png', (_req, res) => {
+    res.type('image/png').send(iconPng);
+  });
+  app.use('/add-in', express.static(addinPath));
 
   app.use((req, res) => {
     res.status(404).json({ error: 'Not found', path: req.path });

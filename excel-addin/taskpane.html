@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMS LocalBlast</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+  <link rel="stylesheet" href="taskpane.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1>SMS LocalBlast</h1>
+    </header>
+
+    <!-- Login screen -->
+    <div id="login-screen" class="screen">
+      <div class="card">
+        <h2>Sign in</h2>
+        <p class="hint">Use your API account email and password.</p>
+        <form id="login-form">
+          <input type="email" id="email" placeholder="Email" required />
+          <input type="password" id="password" placeholder="Password" required />
+          <p id="login-error" class="error" style="display:none;"></p>
+          <button type="submit" class="btn btn-primary">Sign in</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main screen (after login) -->
+    <div id="main-screen" class="screen" style="display:none;">
+      <div class="user-info">
+        <span id="user-email"></span>
+        <button id="logout-btn" class="btn-link">Sign out</button>
+      </div>
+
+      <div class="card">
+        <h3>Send from sheet</h3>
+        <p class="hint">Sheet must have columns: <strong>Phone</strong> (A) and <strong>Message</strong> (B). Header row optional.</p>
+        <button id="send-btn" class="btn btn-primary">Enqueue messages</button>
+        <p id="send-status" class="status"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="taskpane.js"></script>
+</body>
+</html>

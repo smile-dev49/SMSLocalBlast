@@ -121,19 +121,20 @@ async function onSend() {
       await context.sync();
 
       const values = range.values || [];
-      if (values.length < 2) {
+      if (values.length < 1) {
         status.textContent = 'No data. Add Phone (col A) and Message (col B), with at least one row.';
         btn.disabled = false;
         return;
       }
 
-      const rows = values.slice(1);
+      const rows = values.length === 1 ? values : values.slice(1);
+      const rowOffset = values.length === 1 ? 1 : 2;
       const messages = rows
         .map((row, i) => {
           const phone = String(row[0] ?? '').trim();
           const body = String(row[1] ?? '').trim();
           const mediaUrl = row[2] != null ? String(row[2]).trim() : '';
-          return { phone, body, mediaUrl: mediaUrl || null, rowIndex: i + 2 };
+          return { phone, body, mediaUrl: mediaUrl || null, rowIndex: i + rowOffset };
         })
         .filter(m => m.phone && m.body);
 

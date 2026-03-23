@@ -2,7 +2,9 @@
 
 ## 1. Tables in Supabase
 
-You already have **`users`**, **`devices`**, **`messages`**. Compare columns to `sql/001_initial.sql` (especially `messages.status` as enum `message_status`).
+You have **`users`**, **`devices`**, **`messages`**. Compare columns to `sql/001_initial.sql` (especially `messages.status` as enum `message_status`).
+
+Optional (for licensing): Run `sql/005_licenses_and_global_settings.sql` to add **`licenses`** and **`global_settings`**.
 
 ## 2. Run the queue RPC (one-time)
 

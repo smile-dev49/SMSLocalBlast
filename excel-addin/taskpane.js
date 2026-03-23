@@ -121,7 +121,8 @@ async function onSend() {
         .map((row, i) => {
           const phone = String(row[0] ?? '').trim();
           const body = String(row[1] ?? '').trim();
-          return { phone, body, rowIndex: i + 2 };
+          const mediaUrl = row[2] != null ? String(row[2]).trim() : '';
+          return { phone, body, mediaUrl: mediaUrl || null, rowIndex: i + 2 };
         })
         .filter(m => m.phone && m.body);
 
@@ -144,7 +145,11 @@ async function onSend() {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({ to_phone: m.phone, body: m.body }),
+            body: JSON.stringify({
+              to_phone: m.phone,
+              body: m.body,
+              ...(m.mediaUrl && { media_url: m.mediaUrl }),
+            }),
           });
           if (res.ok) ok++;
           else {

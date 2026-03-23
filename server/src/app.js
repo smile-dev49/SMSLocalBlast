@@ -40,6 +40,7 @@ export function createApp() {
 
   const addinPath = path.join(__dirname, '..', '..', 'excel-addin');
   const adminPath = path.join(__dirname, '..', '..', 'admin-web');
+  const iosShortcutPath = path.join(__dirname, '..', '..', 'ios-shortcut');
   const iconPng = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
     'base64'
@@ -52,6 +53,7 @@ export function createApp() {
   });
   app.use('/add-in', express.static(addinPath));
   app.use('/admin', express.static(adminPath));
+  app.use('/ios-shortcut', express.static(iosShortcutPath));
 
   app.use((req, res) => {
     res.status(404).json({ error: 'Not found', path: req.path });

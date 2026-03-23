@@ -10,6 +10,7 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | `excel-addin/` | Office.js task pane (login + enqueue from sheet) |
 | `android/` | Android gateway app (poll, send SMS, report status) |
 | `admin-web/` | Admin dashboard (users, stats, health) |
+| `ios-shortcut/` | iOS Shortcut recipe + QR code page |
 
 ## Quick start (API)
 

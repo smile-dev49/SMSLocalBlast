@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMS LocalBlast — iOS Shortcut Setup</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 24px; max-width: 600px; margin: 0 auto; line-height: 1.6; color: #333; }
+    h1 { color: #1b4d89; }
+    pre { background: #f5f5f5; padding: 16px; overflow-x: auto; font-size: 13px; }
+    a { color: #1b4d89; }
+  </style>
+</head>
+<body>
+  <h1>SMS LocalBlast — iOS Shortcut Setup</h1>
+  <p>Use the <strong>Shortcuts</strong> app (iOS 15+) to poll the API and send SMS from your iPhone.</p>
+
+  <h2>Steps</h2>
+  <ol>
+    <li>Open <strong>Shortcuts</strong> on your iPhone and create a new shortcut.</li>
+    <li><strong>Add variables:</strong> Text actions for <code>YOUR_API_URL</code> (e.g. <code>https://yourserver.com</code>) and <code>YOUR_TOKEN</code> (JWT from login).</li>
+    <li><strong>Get Contents of URL:</strong> POST to <code>[API_URL]/api/messages/claim-next</code> with header <code>Authorization: Bearer [TOKEN]</code>.</li>
+    <li><strong>Parse JSON:</strong> Get <code>message</code> from the response.</li>
+    <li><strong>If message exists:</strong> Get <code>id</code>, <code>to_phone</code>, <code>body</code>. Use <strong>Send Message</strong> to send. Then PATCH <code>/api/messages/[id]/status</code> with <code>{"status":"sent"}</code>.</li>
+    <li>Add <strong>Personal Automation</strong> to run on a schedule (e.g. every 2 min).</li>
+  </ol>
+
+  <p>See <a href="RECIPE.md">RECIPE.md</a> for the full step-by-step.</p>
+</body>
+</html>

@@ -30,11 +30,22 @@ This adds a safe “pick next pending message” function for phones (no double-
 npm run dev
 ```
 
-## 5. Smoke test
+## 5. Create an admin user
+
+In **Supabase → SQL Editor**, run (replace email with yours):
+
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'your@email.com';
+```
+
+Or use `sql/004_make_admin.sql` and edit the email.
+
+## 6. Smoke test
 
 1. `POST /api/auth/register` → create user  
 2. `POST /api/auth/login` → copy `token`  
 3. `POST /api/messages` with `Authorization: Bearer <token>` → enqueue  
 4. `POST /api/messages/claim-next` with same header → device gets one row  
+5. Visit **http://localhost:3000/admin** → sign in with admin account
 
 See `README.md` for example bodies.

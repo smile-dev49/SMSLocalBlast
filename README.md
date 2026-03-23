@@ -9,7 +9,7 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | `server/` | Node.js + Express API (Supabase for DB/API) |
 | `excel-addin/` | Office.js task pane (login + enqueue from sheet) |
 | `android/` | Android gateway app (poll, send SMS, report status) |
-| `admin-web/` | Admin dashboard (to be added) |
+| `admin-web/` | Admin dashboard (users, stats, health) |
 
 ## Quick start (API)
 
@@ -50,6 +50,10 @@ Content-Type: application/json
 
 {"status":"sent"}
 ```
+
+## Admin dashboard
+
+Visit **http://localhost:3000/admin** and sign in with an admin account. Create one in Supabase: `UPDATE users SET role = 'admin' WHERE email = 'you@example.com';`
 
 ## Database schema
 

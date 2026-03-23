@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMS LocalBlast Admin</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Login -->
+    <div id="login-screen" class="screen">
+      <div class="login-card">
+        <h1>SMS LocalBlast Admin</h1>
+        <p class="hint">Sign in with an admin account.</p>
+        <form id="login-form">
+          <input type="email" id="email" placeholder="Email" required autocomplete="email" />
+          <input type="password" id="password" placeholder="Password" required autocomplete="current-password" />
+          <p id="login-error" class="error" style="display:none;"></p>
+          <button type="submit" class="btn btn-primary">Sign in</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard-screen" class="screen" style="display:none;">
+      <header class="header">
+        <h1>SMS LocalBlast Admin</h1>
+        <div class="header-actions">
+          <span id="admin-email" class="admin-email"></span>
+          <button id="logout-btn" class="btn-link">Sign out</button>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-users">—</div>
+            <div class="stat-label">Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-messages">—</div>
+            <div class="stat-label">Messages (total)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-pending">—</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-sent">—</div>
+            <div class="stat-label">Sent</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-failed">—</div>
+            <div class="stat-label">Failed</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Users</h2>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="3" class="muted">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Server Health</h2>
+          <pre id="health-data" class="health-pre">Checking…</pre>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="admin.js"></script>
+</body>
+</html>

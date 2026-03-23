@@ -5,6 +5,7 @@ import { env } from './config/env.js';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { messagesRouter } from './routes/messages.js';
+import { adminRouter } from './routes/admin.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -35,8 +36,10 @@ export function createApp() {
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/messages', messagesRouter);
+  app.use('/api/admin', adminRouter);
 
   const addinPath = path.join(__dirname, '..', '..', 'excel-addin');
+  const adminPath = path.join(__dirname, '..', '..', 'admin-web');
   const iconPng = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
     'base64'
@@ -48,6 +51,7 @@ export function createApp() {
     res.type('image/png').send(iconPng);
   });
   app.use('/add-in', express.static(addinPath));
+  app.use('/admin', express.static(adminPath));
 
   app.use((req, res) => {
     res.status(404).json({ error: 'Not found', path: req.path });

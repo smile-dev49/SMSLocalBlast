@@ -26,6 +26,7 @@ adminRouter.get('/users', async (req, res) => {
 adminRouter.get('/stats', async (req, res) => {
   try {
     const sb = req.sb;
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     const [
       usersRes,
       totalRes,
@@ -33,6 +34,7 @@ adminRouter.get('/stats', async (req, res) => {
       sentRes,
       deliveredRes,
       failedRes,
+      activeDevicesRes,
     ] = await Promise.all([
       sb.from('users').select('*', { count: 'exact', head: true }),
       sb.from('messages').select('*', { count: 'exact', head: true }),
@@ -40,10 +42,12 @@ adminRouter.get('/stats', async (req, res) => {
       sb.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'sent'),
       sb.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'delivered'),
       sb.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'failed'),
+      sb.from('devices').select('*', { count: 'exact', head: true }).gte('last_seen_at', fiveMinAgo),
     ]);
 
     res.json({
       users: { total: usersRes.count ?? 0 },
+      devices: { active: activeDevicesRes.count ?? 0 },
       messages: {
         total: totalRes.count ?? 0,
         pending: pendingRes.count ?? 0,

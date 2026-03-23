@@ -23,8 +23,9 @@ Android app that polls the API for pending messages, sends them via the device's
 2. **Start**: Tap **Start gateway** to begin polling.
 3. The app polls `POST /api/messages/claim-next` every 15 seconds.
 4. When a message is claimed, it sends via `SmsManager` and calls `PATCH /api/messages/:id/status` with `"sent"`.
-5. Messages with `media_url` are attempted as MMS; on most devices this falls back to SMS (image skipped) unless the app is the default messaging app.
-6. Tap **Stop gateway** to stop polling.
+5. **Multi-device**: Run the app on multiple phones with the same account — each gets different messages (load balancing). Devices register automatically; active devices show in the admin dashboard.
+6. Messages with `media_url` are attempted as MMS; on most devices this falls back to SMS (image skipped) unless the app is the default messaging app.
+7. Tap **Stop gateway** to stop polling.
 
 ## Permissions
 

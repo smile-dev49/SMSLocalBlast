@@ -117,6 +117,7 @@ async function loadDashboard() {
     ]);
 
     document.getElementById('stat-users').textContent = stats.users?.total ?? '—';
+    document.getElementById('stat-devices').textContent = stats.devices?.active ?? '—';
     document.getElementById('stat-messages').textContent = stats.messages?.total ?? '—';
     document.getElementById('stat-pending').textContent = stats.messages?.pending ?? '—';
     document.getElementById('stat-sent').textContent = stats.messages?.sent ?? '—';

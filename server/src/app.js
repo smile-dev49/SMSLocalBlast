@@ -5,6 +5,7 @@ import { env } from './config/env.js';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { messagesRouter } from './routes/messages.js';
+import { devicesRouter } from './routes/devices.js';
 import { adminRouter } from './routes/admin.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -36,6 +37,7 @@ export function createApp() {
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/messages', messagesRouter);
+  app.use('/api/devices', devicesRouter);
   app.use('/api/admin', adminRouter);
 
   const addinPath = path.join(__dirname, '..', '..', 'excel-addin');

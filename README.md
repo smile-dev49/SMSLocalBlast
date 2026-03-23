@@ -44,6 +44,9 @@ Content-Type: application/json
 
 POST /api/messages/claim-next
 Authorization: Bearer <token>
+Content-Type: application/json
+
+{"device_id":"<optional>"}
 
 PATCH /api/messages/<id>/status
 Authorization: Bearer <token>

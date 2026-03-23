@@ -1,6 +1,7 @@
 package com.smslocalblast.gateway
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -41,7 +42,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var status: TextView
 
     private var token: String? = null
+    private var deviceId: String? = null
     private var polling = false
+    private val prefs by lazy { getSharedPreferences("sms_localblast", Context.MODE_PRIVATE) }
     private val pollIntervalMs = 15_000L
     private val jitterMinMs = 10_000L
     private val jitterRangeMs = 20_001L
@@ -130,6 +133,7 @@ class MainActivity : AppCompatActivity() {
                         val obj = JSONObject(json)
                         token = obj.optString("token").takeIf { it.isNotEmpty() }
                         if (token != null) {
+                            registerDevice(base)
                             setStatus("Signed in. Tap Start gateway.")
                             startBtn.isEnabled = true
                             Toast.makeText(this, "Signed in", Toast.LENGTH_SHORT).show()
@@ -152,8 +156,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun registerDevice(base: String) {
+        executor.execute {
+            try {
+                val t = token ?: return@execute
+                val storedId = prefs.getString("device_id", null)
+                val conn = URL("$base/api/devices").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Authorization", "Bearer $t")
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.doOutput = true
+                conn.connectTimeout = 5000
+                conn.readTimeout = 5000
+                conn.outputStream.use { os ->
+                    os.write(JSONObject().apply {
+                        if (storedId != null) put("device_id", storedId)
+                        put("platform", "android")
+                    }.toString().toByteArray())
+                }
+                if (conn.responseCode in 200..299) {
+                    val body = conn.inputStream.bufferedReader().readText()
+                    val obj = JSONObject(body)
+                    val dev = obj.optJSONObject("device")
+                    val id = dev?.optString("id")?.takeIf { it.isNotEmpty() }
+                    if (id != null) {
+                        deviceId = id
+                        prefs.edit().putString("device_id", id).apply()
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
     private fun startPolling() {
         if (token == null) return
+        deviceId = prefs.getString("device_id", null)
         polling = true
         startBtn.isEnabled = false
         stopBtn.isEnabled = true
@@ -183,7 +220,12 @@ class MainActivity : AppCompatActivity() {
                 conn.doOutput = true
                 conn.connectTimeout = 10000
                 conn.readTimeout = 10000
-                conn.outputStream.use { it.write(ByteArray(0)) }
+                val claimBody = JSONObject().apply {
+                    deviceId?.let { put("device_id", it) }
+                }
+                conn.outputStream.use { os ->
+                    os.write(claimBody.toString().toByteArray())
+                }
 
                 val code = conn.responseCode
                 val body = conn.inputStream.bufferedReader().readText()

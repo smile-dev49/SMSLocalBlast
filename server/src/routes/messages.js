@@ -59,8 +59,10 @@ messagesRouter.post('/', rateLimitMessages, async (req, res) => {
 });
 
 messagesRouter.post('/claim-next', async (req, res) => {
+  const deviceId = req.body?.device_id ? String(req.body.device_id).trim() : null;
   const { data, error } = await req.sb.rpc('claim_next_message', {
     p_user_id: req.user.id,
+    p_device_id: deviceId || null,
   });
 
   if (error) {

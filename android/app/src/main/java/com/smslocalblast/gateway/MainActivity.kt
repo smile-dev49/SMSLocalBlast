@@ -20,6 +20,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,6 +39,8 @@ class MainActivity : AppCompatActivity() {
     private var token: String? = null
     private var polling = false
     private val pollIntervalMs = 15_000L
+    private val jitterMinMs = 10_000L
+    private val jitterRangeMs = 20_001L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -176,11 +179,17 @@ class MainActivity : AppCompatActivity() {
                         val id = msg.optString("id")
                         val toPhone = msg.optString("to_phone")
                         val bodyText = msg.optString("body")
-                        sendSmsAndReport(base, t, id, toPhone, bodyText)
+                        sendSmsAndReport(base, t, id, toPhone, bodyText) {
+                            if (polling) {
+                                val jitterMs = jitterMinMs + Random.nextLong(jitterRangeMs)
+                                setStatus("Jitter: waiting ${jitterMs / 1000}s before next poll…")
+                                mainHandler.postDelayed({ pollOnce() }, jitterMs)
+                            }
+                        }
                     } else {
                         setStatus("Polling... (no message)")
+                        if (polling) mainHandler.postDelayed({ pollOnce() }, pollIntervalMs)
                     }
-                    if (polling) mainHandler.postDelayed({ pollOnce() }, pollIntervalMs)
                 }
             } catch (e: Exception) {
                 Log.e("Gateway", "Poll error", e)
@@ -192,7 +201,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun sendSmsAndReport(base: String, t: String, id: String, toPhone: String, body: String) {
+    private fun sendSmsAndReport(
+        base: String,
+        t: String,
+        id: String,
+        toPhone: String,
+        body: String,
+        onDone: () -> Unit = {}
+    ) {
         setStatus("Sending to $toPhone...")
 
         executor.execute {
@@ -225,6 +241,7 @@ class MainActivity : AppCompatActivity() {
 
             mainHandler.post {
                 setStatus(if (smsOk) "Sent to $toPhone" else "Failed to send to $toPhone")
+                onDone()
             }
         }
     }

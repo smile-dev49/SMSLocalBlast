@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAdminDb } from '../middleware/requireAdminDb.js';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { rateLimitMessages } from '../middleware/rateLimitMessages.js';
 
 export const messagesRouter = Router();
 
@@ -9,8 +10,7 @@ messagesRouter.use(requireAuth);
 
 const ALLOWED_STATUS = new Set(['sent', 'delivered', 'failed']);
 
-/** Enqueue one SMS (Excel / API) */
-messagesRouter.post('/', async (req, res) => {
+messagesRouter.post('/', rateLimitMessages, async (req, res) => {
   const to_phone = String(req.body?.to_phone || '').trim();
   const body = String(req.body?.body || '');
   const media_url = req.body?.media_url
@@ -43,10 +43,6 @@ messagesRouter.post('/', async (req, res) => {
   res.status(201).json({ message: data });
 });
 
-/**
- * Mobile gateway: claim next pending row (atomic).
- * Requires RPC claim_next_message — run sql/002_claim_next_message.sql in Supabase.
- */
 messagesRouter.post('/claim-next', async (req, res) => {
   const { data, error } = await req.sb.rpc('claim_next_message', {
     p_user_id: req.user.id,
@@ -70,7 +66,6 @@ messagesRouter.post('/claim-next', async (req, res) => {
   res.json({ message: data });
 });
 
-/** Device reports outcome after send attempt */
 messagesRouter.patch('/:id/status', async (req, res) => {
   const id = String(req.params.id || '');
   const status = String(req.body?.status || '').toLowerCase();

@@ -135,6 +135,7 @@ async function onSend() {
 
       let ok = 0;
       let fail = 0;
+      let rateLimited = false;
       for (const m of messages) {
         try {
           const res = await fetch(`${API_BASE}/api/messages`, {
@@ -146,13 +147,24 @@ async function onSend() {
             body: JSON.stringify({ to_phone: m.phone, body: m.body }),
           });
           if (res.ok) ok++;
-          else fail++;
+          else {
+            const data = await res.json().catch(() => ({}));
+            if (res.status === 429) {
+              status.textContent = data.message || 'Rate limit exceeded (200 messages/hour). Try again later.';
+              fail += messages.length - ok - fail;
+              rateLimited = true;
+              break;
+            }
+            fail++;
+          }
         } catch {
           fail++;
         }
       }
 
-      status.textContent = `Done. ${ok} enqueued.${fail ? ` ${fail} failed.` : ''}`;
+      if (!rateLimited) {
+        status.textContent = `Done. ${ok} enqueued.${fail ? ` ${fail} failed.` : ''}`;
+      }
     });
   } catch (err) {
     status.textContent = 'Error reading sheet. Ensure Excel is ready.';

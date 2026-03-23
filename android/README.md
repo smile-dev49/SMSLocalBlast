@@ -23,12 +23,14 @@ Android app that polls the API for pending messages, sends them via the device's
 2. **Start**: Tap **Start gateway** to begin polling.
 3. The app polls `POST /api/messages/claim-next` every 15 seconds.
 4. When a message is claimed, it sends via `SmsManager` and calls `PATCH /api/messages/:id/status` with `"sent"`.
-5. Tap **Stop gateway** to stop polling.
+5. Messages with `media_url` are attempted as MMS; on most devices this falls back to SMS (image skipped) unless the app is the default messaging app.
+6. Tap **Stop gateway** to stop polling.
 
 ## Permissions
 
 - `INTERNET` — API calls
 - `SEND_SMS` — send text messages
+- `READ_EXTERNAL_STORAGE` (API ≤32) / `READ_MEDIA_IMAGES` (API 33+) — for MMS image handling
 - `FOREGROUND_SERVICE` — keep polling when app is in background (optional)
 
 ## API base URL

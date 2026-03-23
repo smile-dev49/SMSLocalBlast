@@ -25,6 +25,19 @@ function clearToken() {
   localStorage.removeItem(EMAIL_KEY);
 }
 
+function replaceTags(text, rowObj) {
+  if (!text || typeof text !== 'string') return text;
+  const tagMap = {};
+  for (const [k, v] of Object.entries(rowObj || {})) {
+    const key = String(k).trim();
+    if (key) tagMap[key.toLowerCase()] = String(v ?? '').trim();
+  }
+  return text.replace(/\{\{([^}]+)\}\}/g, (match, tag) => {
+    const val = tagMap[String(tag).trim().toLowerCase()];
+    return val !== undefined ? val : match;
+  });
+}
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(el => { el.style.display = 'none'; });
   const el = document.getElementById(id);
@@ -127,13 +140,28 @@ async function onSend() {
         return;
       }
 
-      const rows = values.length === 1 ? values : values.slice(1);
-      const rowOffset = values.length === 1 ? 1 : 2;
+      const hasHeader = values.length > 1;
+      const headers = hasHeader ? (values[0] || []).map((h) => String(h ?? '').trim()) : ['Phone', 'Message'];
+      const rows = hasHeader ? values.slice(1) : values;
+      const rowOffset = hasHeader ? 2 : 1;
+
+      const phoneCol = headers.findIndex((h) => /^phone$/i.test(h));
+      const messageCol = headers.findIndex((h) => /^message$/i.test(h));
+      const mediaCol = headers.findIndex((h) => /^media\s*url$/i.test(h));
+      const pi = phoneCol >= 0 ? phoneCol : 0;
+      const mi = messageCol >= 0 ? messageCol : 1;
+      const ui = mediaCol >= 0 ? mediaCol : 2;
+
       const messages = rows
         .map((row, i) => {
-          const phone = String(row[0] ?? '').trim();
-          const body = String(row[1] ?? '').trim();
-          const mediaUrl = row[2] != null ? String(row[2]).trim() : '';
+          const rowObj = {};
+          headers.forEach((h, idx) => {
+            if (h) rowObj[h] = String(row[idx] ?? '').trim();
+          });
+          const phone = rowObj[headers[pi]] ?? String(row[pi] ?? '').trim();
+          let body = rowObj[headers[mi]] ?? String(row[mi] ?? '').trim();
+          const mediaUrl = rowObj[headers[ui]] ?? (row[ui] != null ? String(row[ui]).trim() : '');
+          body = replaceTags(body, rowObj);
           return { phone, body, mediaUrl: mediaUrl || null, rowIndex: i + rowOffset };
         })
         .filter(m => m.phone && m.body);

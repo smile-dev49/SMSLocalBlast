@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { hashPassword, verifyPassword } from '../lib/password.js';
 import { signUserToken } from '../lib/jwt.js';
 import { requireAdminDb } from '../middleware/requireAdminDb.js';
+import { DEMO_EMAIL, DEMO_USER_ID } from '../config/demo.js';
 
 export const authRouter = Router();
 
@@ -17,6 +18,9 @@ authRouter.post('/register', async (req, res) => {
 
   if (!EMAIL_RE.test(email)) {
     return res.status(400).json({ error: 'Invalid email' });
+  }
+  if (email === DEMO_EMAIL) {
+    return res.status(400).json({ error: 'Demo account cannot be registered' });
   }
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
@@ -69,6 +73,18 @@ authRouter.post('/login', async (req, res) => {
 
   if (!email || !password) {
     return res.status(400).json({ error: 'email and password required' });
+  }
+
+  if (email === DEMO_EMAIL) {
+    const token = signUserToken({
+      sub: DEMO_USER_ID,
+      email: DEMO_EMAIL,
+      role: 'user',
+    });
+    return res.json({
+      user: { id: DEMO_USER_ID, email: DEMO_EMAIL, role: 'user' },
+      token,
+    });
   }
 
   const { data: user, error } = await req.sb

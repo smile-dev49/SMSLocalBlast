@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAdminDb } from '../middleware/requireAdminDb.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { rateLimitMessages } from '../middleware/rateLimitMessages.js';
+import { DEMO_USER_ID } from '../config/demo.js';
 
 export const messagesRouter = Router();
 
@@ -19,6 +20,20 @@ messagesRouter.post('/', rateLimitMessages, async (req, res) => {
 
   if (!to_phone || !body) {
     return res.status(400).json({ error: 'to_phone and body are required' });
+  }
+
+  if (req.user.id === DEMO_USER_ID) {
+    return res.status(201).json({
+      message: {
+        id: `demo-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        user_id: DEMO_USER_ID,
+        to_phone,
+        body,
+        media_url: media_url || null,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      },
+    });
   }
 
   const { data, error } = await req.sb

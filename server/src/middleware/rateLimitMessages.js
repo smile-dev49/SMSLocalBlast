@@ -1,8 +1,13 @@
+import { DEMO_USER_ID } from '../config/demo.js';
 
 const DEFAULT_LIMIT = 200;
 const WINDOW_HOURS = 1;
 
 export function rateLimitMessages(req, res, next) {
+  if (req.user?.id === DEMO_USER_ID) {
+    return next();
+  }
+
   const limit = Math.max(1, parseInt(process.env.RATE_LIMIT_MSG_PER_HOUR || '', 10) || DEFAULT_LIMIT);
 
   const checkAndNext = async () => {

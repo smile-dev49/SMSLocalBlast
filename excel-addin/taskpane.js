@@ -2,6 +2,7 @@
 
 const API_BASE = window.location.origin;
 const TOKEN_KEY = 'sms_localblast_token';
+const EMAIL_KEY = 'sms_localblast_email';
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -11,8 +12,17 @@ function setToken(token) {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
+function setUserEmail(email) {
+  localStorage.setItem(EMAIL_KEY, (email || '').toLowerCase());
+}
+
+function getUserEmail() {
+  return localStorage.getItem(EMAIL_KEY) || '';
+}
+
 function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(EMAIL_KEY);
 }
 
 function showScreen(id) {
@@ -53,7 +63,8 @@ function showLogin() {
 
 function showMain() {
   showScreen('main-screen');
-  document.getElementById('user-email').textContent = 'Signed in';
+  const emailEl = document.getElementById('user-email');
+  emailEl.textContent = getUserEmail() === 'demo@localblast.com' ? 'Demo mode (no real SMS)' : 'Signed in';
 }
 
 async function onLogin(e) {
@@ -76,7 +87,7 @@ async function onLogin(e) {
     }
 
     setToken(data.token);
-    document.getElementById('user-email').textContent = data.user?.email || email;
+    setUserEmail(data.user?.email || email);
     showMain();
   } catch (err) {
     showError('login-error', 'Network error. Is the server running?');

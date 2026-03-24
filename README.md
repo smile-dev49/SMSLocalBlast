@@ -7,6 +7,7 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | Folder | Purpose |
 |--------|---------|
 | `server/` | Node.js + Express API (Supabase for DB/API) |
+| `license-server/` | Master license server (verify purchase codes; deploy separately) |
 | `excel-addin/` | Office.js task pane (login + enqueue from sheet) |
 | `android/` | Android gateway app (poll, send SMS, report status) |
 | `admin-web/` | Admin dashboard (users, stats, health) |
@@ -72,6 +73,10 @@ Tables are created in **Supabase** (SQL Editor), not via a local Postgres URL. S
 ```bash
 npm run db:sql-help
 ```
+
+## Licensing
+
+For production, deploy the **license server** (`license-server/`) and set `LICENSE_SERVER_URL` and `PURCHASE_CODE` in the main server `.env`. See `license-server/README.md`.
 
 ## Requirements
 

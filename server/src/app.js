@@ -7,6 +7,7 @@ import { authRouter } from './routes/auth.js';
 import { messagesRouter } from './routes/messages.js';
 import { devicesRouter } from './routes/devices.js';
 import { adminRouter } from './routes/admin.js';
+import { installRouter } from './routes/install.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -34,6 +35,7 @@ export function createApp() {
     });
   });
 
+  app.use('/api/install', installRouter);
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/messages', messagesRouter);
@@ -56,6 +58,10 @@ export function createApp() {
   app.use('/add-in', express.static(addinPath));
   app.use('/admin', express.static(adminPath));
   app.use('/ios-shortcut', express.static(iosShortcutPath));
+
+  const installPath = path.join(__dirname, '..', '..', 'install-web');
+  app.get('/install', (_req, res) => res.sendFile(path.join(installPath, 'index.html')));
+  app.use('/install', express.static(installPath));
 
   app.use((req, res) => {
     res.status(404).json({ error: 'Not found', path: req.path });

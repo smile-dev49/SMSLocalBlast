@@ -55,9 +55,13 @@ Content-Type: application/json
 {"status":"sent"}
 ```
 
+## Web installer
+
+Visit **http://localhost:3000/install** for the 3-step setup wizard (database, branding, admin account). Run `sql/001_initial.sql` and `sql/002_claim_next_message.sql` in Supabase first.
+
 ## Admin dashboard
 
-Visit **http://localhost:3000/admin** and sign in with an admin account. Create one in Supabase: `UPDATE users SET role = 'admin' WHERE email = 'you@example.com';`
+Visit **http://localhost:3000/admin** and sign in with an admin account.
 
 ## Database schema
 

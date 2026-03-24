@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>God View — SMS LocalBlast</title>
+  <link rel="stylesheet" href="god-view.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="login-screen" class="screen">
+      <div class="login-card">
+        <h1>God View</h1>
+        <p class="hint">Author access. Enter your secret.</p>
+        <form id="login-form">
+          <input type="password" id="secret" placeholder="GOD_VIEW_SECRET" required autocomplete="current-password" />
+          <p id="login-error" class="error" style="display:none;"></p>
+          <button type="submit" class="btn btn-primary">Enter</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="dashboard-screen" class="screen" style="display:none;">
+      <header class="header">
+        <h1>God View</h1>
+        <div class="header-actions">
+          <button id="logout-btn" class="btn-link">Sign out</button>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-label">Total licenses</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-active">—</div>
+            <div class="stat-label">Active</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-activated">—</div>
+            <div class="stat-label">Activated (in use)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-revoked">—</div>
+            <div class="stat-label">Revoked</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Licenses</h2>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Purchase code</th>
+                  <th>Buyer</th>
+                  <th>Domain</th>
+                  <th>Status</th>
+                  <th>Last check-in</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="licenses-tbody">
+                <tr><td colspan="6" class="muted">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="god-view.js"></script>
+</body>
+</html>

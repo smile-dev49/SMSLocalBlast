@@ -53,6 +53,14 @@ Request:
 
 Revokes the license; the next verify-license call will return `valid: false` and the client will exit.
 
+## God View (Author dashboard)
+
+Set `GOD_VIEW_SECRET` in `.env`, then visit **http://localhost:3001/god-view**. Enter the secret to access:
+
+- Stats: total licenses, active, activated (in use), revoked
+- License table with revoke button
+- Uses same auth as revoke (GOD_VIEW_SECRET or REVOKE_SECRET)
+
 - First activation: binds the license to the domain.
 - Subsequent checks: must match the registered domain.
 - Revoked/suspended licenses return `valid: false`.

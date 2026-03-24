@@ -2,8 +2,12 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { verifyRouter } from './routes/verify.js';
+import { godRouter } from './routes/god.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT) || 3001;
 const app = express();
 
@@ -20,6 +24,11 @@ app.get('/', (_req, res) => {
 });
 
 app.use('/api/v1', verifyRouter);
+app.use('/api/v1/god', godRouter);
+
+const godViewPath = path.join(__dirname, '..', '..', 'god-view');
+app.get('/god-view', (_req, res) => res.sendFile(path.join(godViewPath, 'index.html')));
+app.use('/god-view', express.static(godViewPath));
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });

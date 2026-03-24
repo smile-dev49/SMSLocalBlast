@@ -7,7 +7,8 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | Folder | Purpose |
 |--------|---------|
 | `server/` | Node.js + Express API (Supabase for DB/API) |
-| `license-server/` | Master license server (verify purchase codes; deploy separately) |
+| `license-server/` | Master license server (verify, revoke, God View; deploy separately) |
+| `god-view/` | Author dashboard (stats, licenses, revoke) — served by license-server at /god-view |
 | `excel-addin/` | Office.js task pane (login + enqueue from sheet) |
 | `android/` | Android gateway app (poll, send SMS, report status) |
 | `admin-web/` | Admin dashboard (users, stats, health) |

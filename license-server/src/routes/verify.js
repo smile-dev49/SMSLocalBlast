@@ -94,12 +94,14 @@ verifyRouter.post('/verify-license', async (req, res) => {
 });
 
 verifyRouter.post('/revoke-license', async (req, res) => {
-  const secret = process.env.REVOKE_SECRET?.trim();
-  if (!secret) {
+  const godSecret = process.env.GOD_VIEW_SECRET?.trim();
+  const revokeSecret = process.env.REVOKE_SECRET?.trim();
+  const validSecrets = [godSecret, revokeSecret].filter(Boolean);
+  if (validSecrets.length === 0) {
     return res.status(503).json({ error: 'Revoke not configured' });
   }
   const auth = req.headers.authorization;
-  if (auth !== `Bearer ${secret}`) {
+  if (!auth || !validSecrets.some((s) => auth === `Bearer ${s}`)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

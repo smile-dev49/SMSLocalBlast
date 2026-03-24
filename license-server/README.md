@@ -65,6 +65,14 @@ Set `GOD_VIEW_SECRET` in `.env`, then visit **http://localhost:3001/god-view**. 
 - Subsequent checks: must match the registered domain.
 - Revoked/suspended licenses return `valid: false`.
 
+## Release notifications (GitHub Action)
+
+Set `RELEASE_SECRET` or `MASTER_SERVER_SECRET` in `.env`. Add to GitHub repo secrets:
+- `MASTER_SERVER_URL` — license server URL (e.g. https://manager.smslocalblast.com)
+- `MASTER_SERVER_SECRET` — same as RELEASE_SECRET
+
+On push to `main`, the workflow POSTs to `/api/v1/release-new-version`. Buyer admin dashboards show "Update available" when `GET /api/update-check` detects a newer version.
+
 ## Client configuration
 
 In the buyer's SMS LocalBlast `.env`:

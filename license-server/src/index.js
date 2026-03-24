@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { verifyRouter } from './routes/verify.js';
 import { godRouter } from './routes/god.js';
+import { releaseRouter } from './routes/release.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT) || 3001;
@@ -24,6 +25,7 @@ app.get('/', (_req, res) => {
 });
 
 app.use('/api/v1', verifyRouter);
+app.use('/api/v1', releaseRouter);
 app.use('/api/v1/god', godRouter);
 
 const godViewPath = path.join(__dirname, '..', '..', 'god-view');

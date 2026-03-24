@@ -1,4 +1,7 @@
 import { Router } from 'express';
+import { readFileSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { env } from '../config/env.js';
 import {
   getSupabase,
@@ -6,14 +9,28 @@ import {
   isSupabaseConfigured,
 } from '../db/supabase.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function getVersion() {
+  try {
+    const pkg = JSON.parse(
+      readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8')
+    );
+    return pkg.version || '0.1.0';
+  } catch {
+    return '0.1.0';
+  }
+}
+
 export const healthRouter = Router();
 
 healthRouter.get('/', async (_req, res) => {
+  const version = getVersion();
   if (!isSupabaseConfigured()) {
     return res.json({
       ok: true,
       service: 'sms-localblast-api',
-      version: '0.1.0',
+      version,
       supabase: 'not_configured',
       hint: 'Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in .env',
       time: new Date().toISOString(),
@@ -63,7 +80,7 @@ healthRouter.get('/', async (_req, res) => {
   res.json({
     ok: true,
     service: 'sms-localblast-api',
-    version: '0.1.0',
+    version: getVersion(),
     supabase,
     ...(supabaseDetail ? { supabaseDetail } : {}),
     supabaseAdmin,

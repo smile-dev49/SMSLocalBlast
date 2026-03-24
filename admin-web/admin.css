@@ -313,6 +313,15 @@ body {
   color: #dc2626;
 }
 
+.update-banner {
+  padding: 12px 16px;
+  background: #d1fae5;
+  border: 1px solid #059669;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  color: #065f46;
+}
+
 /* Button */
 .btn {
   border: none;

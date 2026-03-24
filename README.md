@@ -79,6 +79,10 @@ npm run db:sql-help
 
 For production, deploy the **license server** (`license-server/`) and set `LICENSE_SERVER_URL` and `PURCHASE_CODE` in the main server `.env`. See `license-server/README.md`.
 
+## Release notifications
+
+On push to `main`, `.github/workflows/notify-update.yml` POSTs to the license server. Configure `MASTER_SERVER_URL` and `MASTER_SERVER_SECRET` in GitHub repo secrets. Admin dashboards show "Update available" when a newer version is published.
+
 ## Requirements
 
 - Node.js 18+

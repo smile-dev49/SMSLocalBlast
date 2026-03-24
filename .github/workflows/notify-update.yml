@@ -1,0 +1,39 @@
+# On push to main: notify the license server of a new release.
+# Buyer dashboards can then show "Update Available".
+#
+# Secrets (GitHub repo Settings → Secrets):
+#   MASTER_SERVER_URL   - e.g. https://manager.smslocalblast.com
+#   MASTER_SERVER_SECRET - Bearer token for POST /api/v1/release-new-version
+
+name: Notify release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: |
+          V=$(node -p "require('./server/package.json').version")
+          echo "version=$V" >> $GITHUB_OUTPUT
+
+      - name: Notify license server
+        env:
+          URL: ${{ secrets.MASTER_SERVER_URL }}
+          SECRET: ${{ secrets.MASTER_SERVER_SECRET }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$SECRET" ]; then
+            echo "MASTER_SERVER_URL or MASTER_SERVER_SECRET not set — skipping notify"
+            exit 0
+          fi
+          curl -sSf -X POST "${URL}/api/v1/release-new-version" \
+            -H "Authorization: Bearer $SECRET" \
+            -H "Content-Type: application/json" \
+            -d "{\"version\":\"${{ steps.version.outputs.version }}\",\"notes\":\"Release ${{ steps.version.outputs.version }}\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
+            || echo "Notify failed (server may be down)"

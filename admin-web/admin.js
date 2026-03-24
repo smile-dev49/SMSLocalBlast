@@ -113,12 +113,13 @@ async function loadDashboard() {
   if (!token) return;
 
   try {
-    const [stats, users, apiKeys, brand, health] = await Promise.all([
+    const [stats, users, apiKeys, brand, health, updateCheck] = await Promise.all([
       api('/api/admin/stats'),
       api('/api/admin/users'),
       api('/api/admin/api-keys').catch(() => ({ apiKeys: [] })),
       api('/api/admin/brand').catch(() => ({})),
       fetch(`${API_BASE}/api/health`).then((r) => r.json()).catch(() => ({ error: 'Failed to fetch' })),
+      fetch(`${API_BASE}/api/update-check`).then((r) => r.json()).catch(() => ({ update_available: false })),
     ]);
 
     document.getElementById('stat-users').textContent = stats.users?.total ?? '—';
@@ -168,6 +169,13 @@ async function loadDashboard() {
     document.getElementById('brand-primary-color').value = brand.primary_color || '#1b4d89';
 
     document.getElementById('health-data').textContent = JSON.stringify(health, null, 2);
+
+    const updateBanner = document.getElementById('update-available-banner');
+    if (updateBanner) {
+      updateBanner.style.display = updateCheck.update_available ? 'block' : 'none';
+      const verEl = document.getElementById('update-available-version');
+      if (verEl) verEl.textContent = updateCheck.latest_version || '';
+    }
   } catch (err) {
     if (err.status === 403) {
       clearSession();

@@ -25,6 +25,9 @@ authRouter.post('/register', async (req, res) => {
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
   }
+  if (!req.body?.terms_accepted) {
+    return res.status(400).json({ error: 'You must agree to the Terms of Service and Privacy Policy' });
+  }
 
   const { data: existing } = await req.sb
     .from('users')

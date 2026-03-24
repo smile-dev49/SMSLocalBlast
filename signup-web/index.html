@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign up — SMS LocalBlast</title>
+  <link rel="stylesheet" href="/signup/signup.css" />
+</head>
+<body>
+  <div class="signup-page">
+    <header>
+      <a href="/">SMS LocalBlast</a>
+    </header>
+    <main>
+      <h1>Create account</h1>
+      <form id="signup-form">
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="password" placeholder="Password (min 8 characters)" required minlength="8" />
+        <label class="checkbox">
+          <input type="checkbox" id="terms" required />
+          <span>I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a></span>
+        </label>
+        <p id="error" class="error" style="display:none;"></p>
+        <button type="submit" class="btn">Sign up</button>
+      </form>
+      <p class="login-link">Already have an account? <a href="/admin">Sign in</a></p>
+    </main>
+  </div>
+  <script src="/signup/signup.js"></script>
+</body>
+</html>

@@ -70,6 +70,15 @@ export function createApp() {
   app.get('/docs', (_req, res) => res.sendFile(path.join(docsPath, 'manual.html')));
   app.use('/docs', express.static(docsPath));
 
+  const legalPath = path.join(__dirname, '..', '..', 'legal');
+  app.get('/privacy', (_req, res) => res.sendFile(path.join(legalPath, 'privacy.html')));
+  app.get('/terms', (_req, res) => res.sendFile(path.join(legalPath, 'terms.html')));
+  app.use('/legal', express.static(legalPath));
+
+  const signupPath = path.join(__dirname, '..', '..', 'signup-web');
+  app.get('/signup', (_req, res) => res.sendFile(path.join(signupPath, 'index.html')));
+  app.use('/signup', express.static(signupPath));
+
   app.use((req, res) => {
     res.status(404).json({ error: 'Not found', path: req.path });
   });

@@ -16,6 +16,8 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | `demo-web/` | Live demo (simulated sending, no real SMS) — served at /demo |
 | `ios-shortcut/` | iOS Shortcut recipe + QR code page |
 | `docs/` | User & Developer manual (HTML) — served at /docs |
+| `legal/` | Privacy Policy, Terms of Service — /privacy, /terms |
+| `signup-web/` | Sign-up page with Terms checkbox — served at /signup |
 
 ## Quick start (API)
 
@@ -36,7 +38,7 @@ Landing page: **http://localhost:3000** · Health check: **http://localhost:3000
 POST /api/auth/register
 Content-Type: application/json
 
-{"email":"you@example.com","password":"yourpassword"}
+{"email":"you@example.com","password":"yourpassword","terms_accepted":true}
 
 POST /api/auth/login
 Content-Type: application/json

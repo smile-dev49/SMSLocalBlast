@@ -120,7 +120,7 @@ JWT_SECRET=&lt;openssl rand -hex 32&gt;</pre>
       <h2>6. API Reference</h2>
       <h3>Auth</h3>
       <pre>POST /api/auth/register
-{"email":"user@example.com","password":"secret"}
+{"email":"user@example.com","password":"secret","terms_accepted":true}
 
 POST /api/auth/login
 {"email":"user@example.com","password":"secret"}

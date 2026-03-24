@@ -13,6 +13,7 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | `android/` | Android gateway app (poll, send SMS, report status) |
 | `admin-web/` | Admin dashboard (users, stats, health) |
 | `landing-web/` | Marketing landing page (hero, calculator, FAQ) — served at / |
+| `demo-web/` | Live demo (simulated sending, no real SMS) — served at /demo |
 | `ios-shortcut/` | iOS Shortcut recipe + QR code page |
 
 ## Quick start (API)

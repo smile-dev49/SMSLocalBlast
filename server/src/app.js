@@ -62,6 +62,10 @@ export function createApp() {
   app.get('/install', (_req, res) => res.sendFile(path.join(installPath, 'index.html')));
   app.use('/install', express.static(installPath));
 
+  const demoPath = path.join(__dirname, '..', '..', 'demo-web');
+  app.get('/demo', (_req, res) => res.sendFile(path.join(demoPath, 'index.html')));
+  app.use('/demo', express.static(demoPath));
+
   app.use((req, res) => {
     res.status(404).json({ error: 'Not found', path: req.path });
   });

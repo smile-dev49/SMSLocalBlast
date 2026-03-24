@@ -15,6 +15,7 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | `landing-web/` | Marketing landing page (hero, calculator, FAQ) — served at / |
 | `demo-web/` | Live demo (simulated sending, no real SMS) — served at /demo |
 | `ios-shortcut/` | iOS Shortcut recipe + QR code page |
+| `docs/` | User & Developer manual (HTML) — served at /docs |
 
 ## Quick start (API)
 
@@ -90,6 +91,7 @@ On push to `main`, `.github/workflows/notify-update.yml` POSTs to the license se
 - Node.js 18+
 - A [Supabase](https://supabase.com) project
 
-## Docs
+## Documentation
 
-See `../ACTION-PLAN.md` and client specifications in the parent folder.
+- **User & Developer Manual** — http://localhost:3000/docs (installation, API, Excel, Android, iOS, troubleshooting)
+- `server/SETUP.md` — Quick setup checklist

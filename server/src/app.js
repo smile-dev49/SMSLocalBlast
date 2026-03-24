@@ -66,6 +66,10 @@ export function createApp() {
   app.get('/demo', (_req, res) => res.sendFile(path.join(demoPath, 'index.html')));
   app.use('/demo', express.static(demoPath));
 
+  const docsPath = path.join(__dirname, '..', '..', 'docs');
+  app.get('/docs', (_req, res) => res.sendFile(path.join(docsPath, 'manual.html')));
+  app.use('/docs', express.static(docsPath));
+
   app.use((req, res) => {
     res.status(404).json({ error: 'Not found', path: req.path });
   });

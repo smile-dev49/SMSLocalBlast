@@ -1,0 +1,11 @@
+{
+  "supabase_url": "https://ttlmpkrtkxogncxooiik.supabase.co",
+  "supabase_anon_key": "sb_publishable_MIA1ii0VUugoY7EEXJmy_A_o51PvBoD",
+  "supabase_service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bG1wa3J0a3hvZ25jeG9vaWlrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDA0OTI3MiwiZXhwIjoyMDg5NjI1MjcyfQ.AlA4aVCQ1q172PHFqjW-_gzhqOJ7huu21CaWW7awn5w",
+  "site_name": "SMS LocalBlast",
+  "support_email": "rusuland9@gmail.com",
+  "primary_color": "#1b4d89",
+  "admin_email": "rusuland9@gmail.com",
+  "jwt_secret": "a8a1ce025dcb0c87017ef23a9466c3d16038e5d2eb2749429226642be9e659be",
+  "installed_at": "2026-03-24T08:08:01.713Z"
+}

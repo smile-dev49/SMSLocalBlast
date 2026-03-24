@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { env } from './config/env.js';
 import { healthRouter } from './routes/health.js';
+import { readBrandFromFile } from './lib/brand.js';
 import { authRouter } from './routes/auth.js';
 import { messagesRouter } from './routes/messages.js';
 import { devicesRouter } from './routes/devices.js';
@@ -36,6 +37,7 @@ export function createApp() {
   });
 
   app.use('/api/install', installRouter);
+  app.get('/api/brand', (_req, res) => res.json(readBrandFromFile()));
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/messages', messagesRouter);

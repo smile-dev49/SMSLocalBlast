@@ -4,7 +4,7 @@
 
 You have **`users`**, **`devices`**, **`messages`**. Compare columns to `sql/001_initial.sql` (especially `messages.status` as enum `message_status`).
 
-Optional: Run `sql/005_licenses_and_global_settings.sql` for licensing. Run `sql/006_claim_with_device.sql` for multi-device tracking.
+Optional: Run `sql/005_licenses_and_global_settings.sql` for licensing. Run `sql/006_claim_with_device.sql` for multi-device tracking. Run `sql/007_api_keys.sql` for API key manager.
 
 ## 2. Run the queue RPC (one-time)
 

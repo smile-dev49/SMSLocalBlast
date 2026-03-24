@@ -79,6 +79,45 @@
         </section>
 
         <section class="card">
+          <h2>API Keys</h2>
+          <p class="hint">Create API keys for programmatic access. Use as <code>Authorization: Bearer &lt;key&gt;</code>.</p>
+          <div class="api-keys-actions">
+            <select id="api-key-user" class="input-select">
+              <option value="">Select user…</option>
+            </select>
+            <input type="text" id="api-key-name" placeholder="Key name (e.g. Excel)" class="input-text" />
+            <button id="create-api-key-btn" class="btn btn-primary">Create key</button>
+          </div>
+          <div id="api-key-secret" class="api-key-secret" style="display:none;">
+            <p><strong>Copy this key now — it won't be shown again:</strong></p>
+            <code id="api-key-secret-value"></code>
+          </div>
+          <div class="table-wrap" style="margin-top:16px;">
+            <table class="data-table">
+              <thead>
+                <tr><th>User</th><th>Name</th><th>Prefix</th><th>Created</th><th></th></tr>
+              </thead>
+              <tbody id="api-keys-tbody">
+                <tr><td colspan="5" class="muted">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Brand Settings</h2>
+          <form id="brand-form">
+            <label>Site name</label>
+            <input type="text" name="site_name" id="brand-site-name" placeholder="SMS LocalBlast" />
+            <label>Support email</label>
+            <input type="email" name="support_email" id="brand-support-email" placeholder="support@example.com" />
+            <label>Primary color</label>
+            <input type="text" name="primary_color" id="brand-primary-color" placeholder="#1b4d89" />
+            <button type="submit" class="btn btn-primary">Save</button>
+          </form>
+        </section>
+
+        <section class="card">
           <h2>Server Health</h2>
           <pre id="health-data" class="health-pre">Checking…</pre>
           <div class="update-row">

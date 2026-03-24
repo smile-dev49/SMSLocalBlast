@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import { requireAdminDb } from '../middleware/requireAdminDb.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
+import { generateApiKey } from '../lib/apiKey.js';
+import { readBrandFromFile, writeBrandToFile } from '../lib/brand.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPDATE_SCRIPT = path.join(__dirname, '..', 'scripts', 'update.js');
@@ -106,4 +108,87 @@ adminRouter.post('/update', (req, res) => {
     console.error('[admin/update]', err);
     res.status(500).json({ error: 'Could not run update script', detail: err.message });
   });
+});
+
+adminRouter.get('/api-keys', async (req, res) => {
+  try {
+    const { data, error } = await req.sb
+      .from('api_keys')
+      .select('id, name, key_prefix, created_at, users(email)')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    res.json({
+      apiKeys: (data || []).map((k) => ({
+        id: k.id,
+        name: k.name,
+        key_prefix: k.key_prefix + '…',
+        created_at: k.created_at,
+        user_email: k.users?.email,
+      })),
+    });
+  } catch (err) {
+    console.error('[admin/api-keys]', err);
+    res.status(500).json({ error: err.code === '42P01' ? 'Run sql/007_api_keys.sql first' : 'Could not fetch API keys' });
+  }
+});
+
+adminRouter.post('/api-keys', async (req, res) => {
+  const userId = req.body?.user_id;
+  const name = String(req.body?.name || 'Default').trim();
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id required' });
+  }
+  try {
+    const { key, keyHash, keyPrefix } = generateApiKey();
+    const { data, error } = await req.sb
+      .from('api_keys')
+      .insert({ user_id: userId, name, key_hash: keyHash, key_prefix: keyPrefix })
+      .select('id, name, key_prefix, created_at')
+      .single();
+
+    if (error) throw error;
+
+    res.status(201).json({
+      api_key: data,
+      secret: key,
+      warning: 'Copy the secret now. It will not be shown again.',
+    });
+  } catch (err) {
+    console.error('[admin/api-keys]', err);
+    res.status(500).json({
+      error: err.code === '42P01' ? 'Run sql/007_api_keys.sql first' : err.message || 'Could not create API key',
+    });
+  }
+});
+
+adminRouter.delete('/api-keys/:id', async (req, res) => {
+  const id = req.params.id;
+  if (!id) return res.status(400).json({ error: 'id required' });
+  try {
+    const { error } = await req.sb.from('api_keys').delete().eq('id', id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[admin/api-keys delete]', err);
+    res.status(500).json({ error: 'Could not delete API key' });
+  }
+});
+
+adminRouter.get('/brand', (_req, res) => {
+  res.json(readBrandFromFile());
+});
+
+adminRouter.patch('/brand', (req, res) => {
+  const { site_name, support_email, primary_color } = req.body || {};
+  const updates = {};
+  if (site_name !== undefined) updates.site_name = site_name;
+  if (support_email !== undefined) updates.support_email = support_email;
+  if (primary_color !== undefined) updates.primary_color = primary_color;
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: 'No fields to update' });
+  }
+  writeBrandToFile(updates);
+  res.json(readBrandFromFile());
 });

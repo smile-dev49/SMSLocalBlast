@@ -7,6 +7,7 @@ SMS LocalBlast — database setup
   • If RLS blocks writes: server/sql/003_disable_rls_for_api.sql
   • Optional: server/sql/005_licenses_and_global_settings.sql (licensing, version)
   • Multi-device: server/sql/006_claim_with_device.sql (device tracking)
+  • API keys: server/sql/007_api_keys.sql (programmatic access)
 
   Env vars: see server/.env.example (SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY)
 `);

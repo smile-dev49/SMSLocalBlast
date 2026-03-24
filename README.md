@@ -65,7 +65,7 @@ Visit **http://localhost:3000/install** for the 3-step setup wizard (database, b
 
 ## Admin dashboard
 
-Visit **http://localhost:3000/admin** and sign in with an admin account. Use the "Check for updates" button to pull the latest code and restart (git-based deployments; requires PM2 for auto-restart).
+Visit **http://localhost:3000/admin** and sign in with an admin account. Features: stats, users, API key manager, brand settings (site name, support email, primary color), server health, update button.
 
 ## Database schema
 

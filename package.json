@@ -1,0 +1,13 @@
+{
+  "name": "sms-localblast",
+  "version": "1.0.0",
+  "private": true,
+  "description": "White-label SMS gateway: Excel → API → mobile",
+  "type": "module",
+  "scripts": {
+    "package:codecanyon": "node scripts/package-codecanyon.js"
+  },
+  "devDependencies": {
+    "archiver": "^7.0.0"
+  }
+}

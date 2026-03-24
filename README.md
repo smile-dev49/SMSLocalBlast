@@ -97,3 +97,4 @@ On push to `main`, `.github/workflows/notify-update.yml` POSTs to the license se
 
 - **User & Developer Manual** — http://localhost:3000/docs (installation, API, Excel, Android, iOS, troubleshooting)
 - `server/SETUP.md` — Quick setup checklist
+- `PACKAGING.md` — CodeCanyon zip packaging

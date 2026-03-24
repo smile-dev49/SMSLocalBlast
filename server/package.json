@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "db:sql-help": "node scripts/sql-help.js"
+    "db:sql-help": "node scripts/sql-help.js",
+    "bootstrap": "node scripts/bootstrap.js",
+    "update": "node scripts/update.js"
   },
   "engines": {
     "node": ">=18"

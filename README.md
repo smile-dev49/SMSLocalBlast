@@ -16,10 +16,12 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 
 ```bash
 cd server
-cp .env.example .env
-npm install
+npm run bootstrap   # checks Node, npm install, creates .env from example
+# Edit .env with Supabase keys, then:
 npm run dev
 ```
+
+Or manually: `cp .env.example .env`, `npm install`, `npm run dev`.
 
 Health check: `GET http://localhost:3000/api/health`
 
@@ -61,7 +63,7 @@ Visit **http://localhost:3000/install** for the 3-step setup wizard (database, b
 
 ## Admin dashboard
 
-Visit **http://localhost:3000/admin** and sign in with an admin account.
+Visit **http://localhost:3000/admin** and sign in with an admin account. Use the "Check for updates" button to pull the latest code and restart (git-based deployments; requires PM2 for auto-restart).
 
 ## Database schema
 

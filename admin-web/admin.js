@@ -62,6 +62,7 @@ function init() {
 
   document.getElementById('login-form')?.addEventListener('submit', onLogin);
   document.getElementById('logout-btn')?.addEventListener('click', onLogout);
+  document.getElementById('update-btn')?.addEventListener('click', onUpdate);
 }
 
 async function onLogin(e) {
@@ -156,6 +157,29 @@ function formatDate(s) {
     return new Date(s).toLocaleString();
   } catch {
     return s;
+  }
+}
+
+async function onUpdate() {
+  const btn = document.getElementById('update-btn');
+  const status = document.getElementById('update-status');
+  btn.disabled = true;
+  status.textContent = 'Updating…';
+  status.className = 'update-status';
+
+  try {
+    const data = await api('/api/admin/update', { method: 'POST' });
+    status.textContent = data.message || 'Update complete.';
+    status.className = 'update-status success';
+    if (data.pm2Restart) {
+      status.textContent += ' Server restarting…';
+      setTimeout(() => location.reload(), 3000);
+    }
+  } catch (err) {
+    status.textContent = err.error || err.detail || 'Update failed';
+    status.className = 'update-status error';
+  } finally {
+    btn.disabled = false;
   }
 }
 

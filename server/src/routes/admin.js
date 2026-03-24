@@ -1,7 +1,13 @@
 import { Router } from 'express';
+import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { requireAdminDb } from '../middleware/requireAdminDb.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const UPDATE_SCRIPT = path.join(__dirname, '..', 'scripts', 'update.js');
 
 export const adminRouter = Router();
 
@@ -60,4 +66,44 @@ adminRouter.get('/stats', async (req, res) => {
     console.error('[admin/stats]', err);
     res.status(500).json({ error: 'Could not fetch stats' });
   }
+});
+
+adminRouter.post('/update', (req, res) => {
+  const child = spawn(process.execPath, [UPDATE_SCRIPT, '--json'], {
+    cwd: path.join(__dirname, '..', '..'),
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  let stdout = '';
+  let stderr = '';
+  child.stdout?.on('data', (chunk) => { stdout += chunk; });
+  child.stderr?.on('data', (chunk) => { stderr += chunk; });
+
+  child.on('close', (code) => {
+    try {
+      const data = JSON.parse(stdout || '{}');
+      if (code === 0 && data.success) {
+        res.json({
+          success: true,
+          message: data.message,
+          pm2Restart: data.pm2Restart,
+        });
+      } else {
+        res.status(500).json({
+          error: data.message || 'Update failed',
+          detail: stderr || undefined,
+        });
+      }
+    } catch {
+      res.status(500).json({
+        error: 'Update failed',
+        detail: stderr || stdout || `Exit code ${code}`,
+      });
+    }
+  });
+
+  child.on('error', (err) => {
+    console.error('[admin/update]', err);
+    res.status(500).json({ error: 'Could not run update script', detail: err.message });
+  });
 });

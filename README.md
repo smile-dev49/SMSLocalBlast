@@ -12,6 +12,7 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | `excel-addin/` | Office.js task pane (login + enqueue from sheet) |
 | `android/` | Android gateway app (poll, send SMS, report status) |
 | `admin-web/` | Admin dashboard (users, stats, health) |
+| `landing-web/` | Marketing landing page (hero, calculator, FAQ) — served at / |
 | `ios-shortcut/` | iOS Shortcut recipe + QR code page |
 
 ## Quick start (API)
@@ -25,7 +26,7 @@ npm run dev
 
 Or manually: `cp .env.example .env`, `npm install`, `npm run dev`.
 
-Health check: `GET http://localhost:3000/api/health`
+Landing page: **http://localhost:3000** · Health check: **http://localhost:3000/api/health**
 
 ### Auth & queue (after [SETUP.md](server/SETUP.md))
 

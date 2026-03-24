@@ -28,14 +28,9 @@ export function createApp() {
   app.use(express.json({ limit: '2mb' }));
   app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
-  app.get('/', (_req, res) => {
-    res.json({
-      name: 'SMS LocalBlast API',
-      docs: '/api/health',
-      auth: '/api/auth/register | /api/auth/login',
-      messages: '/api/messages (Bearer token)',
-    });
-  });
+  const landingPath = path.join(__dirname, '..', '..', 'landing-web');
+  app.get('/', (_req, res) => res.sendFile(path.join(landingPath, 'index.html')));
+  app.use('/', express.static(landingPath));
 
   app.use('/api/install', installRouter);
   app.get('/api/brand', (_req, res) => res.json(readBrandFromFile()));

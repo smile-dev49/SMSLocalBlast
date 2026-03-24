@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMS LocalBlast — Send Bulk SMS from Excel</title>
+  <meta name="description" content="Send bulk SMS from Excel using your own phone plan. Multi-device, personalization, smart jitter. White-label SMS gateway." />
+  <link rel="stylesheet" href="landing.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">SMS LocalBlast</a>
+      <nav class="nav">
+        <a href="/install">Setup</a>
+        <a href="/admin">Admin</a>
+        <a href="#calculator">Calculator</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Send Bulk SMS from Excel using your own phone plan</h1>
+      <p class="hero-sub">No monthly fees. No per-message charges. Use your existing carrier — Excel, API, and phones work together.</p>
+      <div class="hero-actions">
+        <a href="/install" class="btn btn-primary">Get started</a>
+        <a href="#features" class="btn btn-outline">Learn more</a>
+      </div>
+    </section>
+
+    <section id="calculator" class="section calculator-section">
+      <h2>Savings calculator</h2>
+      <p class="section-sub">Compare typical SMS API costs vs. using your own plan.</p>
+      <div class="calculator-card">
+        <div class="calc-row">
+          <label for="volume">Messages per month</label>
+          <input type="range" id="volume" min="100" max="10000" value="1000" step="100" />
+          <span id="volume-value" class="calc-value">1,000</span>
+        </div>
+        <div class="calc-row">
+          <label for="rate">Typical API rate ($/msg)</label>
+          <select id="rate">
+            <option value="0.01">$0.01 (Twilio low volume)</option>
+            <option value="0.0075" selected>$0.0075 (bulk)</option>
+            <option value="0.005">$0.005 (high volume)</option>
+          </select>
+        </div>
+        <div class="calc-result">
+          <div class="calc-savings">
+            <span class="calc-label">API cost</span>
+            <span id="api-cost" class="calc-number">$7.50</span>
+          </div>
+          <div class="calc-savings accent">
+            <span class="calc-label">With your plan</span>
+            <span id="own-cost" class="calc-number">$0</span>
+          </div>
+          <div class="calc-savings highlight">
+            <span class="calc-label">You save</span>
+            <span id="savings" class="calc-number">$7.50/mo</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section features-section">
+      <h2>Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Multi-device</h3>
+          <p>Split 1,000 texts across 4 phones → 4× faster. Load balancing built in.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">✉️</div>
+          <h3>Personalization</h3>
+          <p><code>{{Name}}</code>, <code>{{Balance}}</code>, <code>{{FirstName}}</code> — replace from Excel row data.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⏱️</div>
+          <h3>Smart jitter</h3>
+          <p>Random 10–30 sec delay between texts. Reduces carrier flags and ban risk.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="section faq-section">
+      <h2>FAQ</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Will carriers ban me?</summary>
+          <p>Smart jitter and rate limiting (~200 msg/hour) help. Stay within your plan's normal usage. Avoid spam content; comply with TCPA/GDPR.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is this legal?</summary>
+          <p>Yes, when used responsibly. You must have consent to contact recipients. Follow TCPA (US), GDPR (EU), and local regulations.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How do I set it up?</summary>
+          <p>Create a Supabase project, run the SQL scripts, visit <a href="/install">/install</a> for the 3-step wizard. Connect your Android device or iOS Shortcut.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Does it support MMS?</summary>
+          <p>Yes. Add an optional Media URL column in Excel. Android supports MMS; iOS uses the Shortcut for SMS.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p><a href="/install">Setup</a> · <a href="/admin">Admin</a> · <a href="/api/health">API</a></p>
+      <p class="footer-muted">SMS LocalBlast — White-label SMS gateway</p>
+    </div>
+  </footer>
+  <script src="landing.js"></script>
+</body>
+</html>

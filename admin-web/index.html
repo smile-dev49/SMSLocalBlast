@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SMS LocalBlast Admin</title>
-  <link rel="stylesheet" href="admin.css" />
+  <!-- Use absolute paths so assets resolve correctly for both /admin and /admin/ -->
+  <link rel="stylesheet" href="/admin/admin.css" />
 </head>
 <body>
   <div id="app">
@@ -131,6 +132,6 @@
       </main>
     </div>
   </div>
-  <script src="admin.js"></script>
+  <script src="/admin/admin.js"></script>
 </body>
 </html>

@@ -8,14 +8,14 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="SMS LocalBlast"/>
   <Description DefaultValue="Send bulk SMS from Excel using your phone."/>
-  <IconUrl DefaultValue="https://combinably-pseudoanatomical-cullen.ngrok-free.dev/add-in/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://combinably-pseudoanatomical-cullen.ngrok-free.dev/add-in/assets/icon-64.png"/>
-  <SupportUrl DefaultValue="https://combinably-pseudoanatomical-cullen.ngrok-free.dev/"/>
+  <IconUrl DefaultValue="https://smslocalblast.onrender.com/add-in/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://smslocalblast.onrender.com/add-in/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://smslocalblast.onrender.com/"/>
   <Hosts>
     <Host Name="Workbook"/>
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://combinably-pseudoanatomical-cullen.ngrok-free.dev/add-in/taskpane.html"/>
+    <SourceLocation DefaultValue="https://smslocalblast.onrender.com/add-in/taskpane.html"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
 </OfficeApp>

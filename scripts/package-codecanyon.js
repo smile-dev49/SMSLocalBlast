@@ -30,6 +30,8 @@ const EXCLUDE = [
   'package-lock.json', // include for reference; remove if preferred
 ];
 
+const LEGACY_FOLDERS = ['landing-web', 'demo-web', 'signup-web', 'install-web', 'admin-web', 'docs', 'legal'];
+
 function shouldExclude(relPath) {
   const parts = relPath.split(path.sep);
   if (parts.includes('node_modules')) return true;
@@ -41,6 +43,7 @@ function shouldExclude(relPath) {
   if (parts.includes('.DS_Store') || parts.includes('Thumbs.db')) return true;
   if (parts.includes('.idea') || parts.includes('.vscode')) return true;
   if (relPath.endsWith('.pem')) return true;
+  if (LEGACY_FOLDERS.includes(parts[0])) return true;
   return false;
 }
 

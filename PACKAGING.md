@@ -5,6 +5,7 @@
 ```bash
 cd sms-localblast
 npm install
+npm run build:frontend   # Build React landing (optional; server falls back to legacy if skipped)
 npm run package:codecanyon
 ```
 
@@ -13,7 +14,7 @@ Output: `dist/sms-localblast-codecanyon.zip`
 ## What's included
 
 - Source code (server, excel-addin, android, license-server, god-view)
-- Web installer, admin dashboard, landing, demo, signup, legal
+- Web installer, admin dashboard, landing (React in `frontend/` or legacy `landing-web/`), demo, signup, legal
 - iOS Shortcut configs
 - Documentation (docs/manual.html)
 

@@ -7,17 +7,12 @@ White-label platform: **Excel** → **Node.js API** → **mobile gateways** → 
 | Folder | Purpose |
 |--------|---------|
 | `server/` | Node.js + Express API (Supabase for DB/API) |
+| `frontend/` | React SPA (landing, demo, signup, install, admin, docs, privacy, terms, ios-shortcut) |
 | `license-server/` | Master license server (verify, revoke, God View; deploy separately) |
-| `god-view/` | Author dashboard (stats, licenses, revoke) — served by license-server at /god-view |
-| `excel-addin/` | Office.js task pane (login + enqueue from sheet) |
+| `god-view/` | Author dashboard — served by license-server at /god-view |
+| `excel-addin/` | Office.js task pane (login + enqueue from sheet) — served at /add-in |
 | `android/` | Android gateway app (poll, send SMS, report status) |
-| `admin-web/` | Admin dashboard (users, stats, health) |
-| `landing-web/` | Marketing landing page (hero, calculator, FAQ) — served at / |
-| `demo-web/` | Live demo (simulated sending, no real SMS) — served at /demo |
-| `ios-shortcut/` | iOS Shortcut recipe + QR code page |
-| `docs/` | User & Developer manual (HTML) — served at /docs |
-| `legal/` | Privacy Policy, Terms of Service — /privacy, /terms |
-| `signup-web/` | Sign-up page with Terms checkbox — served at /signup |
+| `landing-web/`, `admin-web/`, etc. | Legacy fallback if `frontend` not built |
 
 ## Quick start (API)
 
@@ -30,7 +25,8 @@ npm run dev
 
 Or manually: `cp .env.example .env`, `npm install`, `npm run dev`.
 
-Landing page: **http://localhost:3000** · Health check: **http://localhost:3000/api/health**
+**Quick start:** Run `npm run build:frontend` from repo root (or `cd frontend && npm run build`), then `cd server && npm run dev`.  
+Landing: **http://localhost:3000** · Health: **http://localhost:3000/api/health**
 
 ### Auth & queue (after [SETUP.md](server/SETUP.md))
 

@@ -5,6 +5,7 @@
   "description": "White-label SMS gateway: Excel → API → mobile",
   "type": "module",
   "scripts": {
+    "build:frontend": "cd frontend && npm install && npm run build",
     "package:codecanyon": "node scripts/package-codecanyon.js"
   },
   "devDependencies": {

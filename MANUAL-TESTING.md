@@ -192,8 +192,9 @@ If you use licensing:
 5. Set `LICENSE_SERVER_URL` and `PURCHASE_CODE` in main server `.env`
 6. Restart main server
 7. [ ] Server starts (license valid)
-8. Open **http://localhost:3001/god-view** (set `GOD_VIEW_SECRET` in license-server `.env`)
-9. [ ] God View shows stats, licenses, revoke works
+8. Open **http://localhost:3001/god-view**
+9. At the login screen, enter the **same value** you set for `GOD_VIEW_SECRET` in `license-server/.env` (e.g. if `GOD_VIEW_SECRET=my-secret-123`, type `my-secret-123`), then click **Enter**
+10. [ ] God View shows stats, licenses, revoke works
 
 ---
 

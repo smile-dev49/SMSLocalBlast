@@ -18,7 +18,25 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export function createApp() {
   const app = express();
 
-  app.use(helmet({ crossOriginResourcePolicy: false }));
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: false,
+      // Office add-ins are hosted in an iframe by Office web domains.
+      frameguard: false,
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          scriptSrc: ["'self'", 'https://appsforoffice.microsoft.com'],
+          'frame-ancestors': [
+            "'self'",
+            'https://*.officeapps.live.com',
+            'https://*.office.com',
+            'https://*.microsoft.com',
+          ],
+        },
+      },
+    })
+  );
   app.use(
     cors({
       origin: true,

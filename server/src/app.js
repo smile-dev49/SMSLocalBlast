@@ -32,6 +32,7 @@ export function createApp() {
             'https://*.officeapps.live.com',
             'https://*.office.com',
             'https://*.microsoft.com',
+            'https://*.cloud.microsoft',
           ],
         },
       },

@@ -1,0 +1,11 @@
+{
+  "extends": "@sms-localblast/config/tsconfig/base.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+  },
+  "include": ["src/**/*.tsx", "src/**/*.ts", "vitest.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}

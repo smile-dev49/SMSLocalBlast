@@ -1,96 +1,95 @@
 # SMS LocalBlast
 
-White-label platform: **Excel** → **Node.js API** → **mobile gateways** → SMS/MMS.
+Production-grade monorepo foundation for **SMS LocalBlast**, an Excel-first SMS/MMS campaign platform with a Node API, Supabase Postgres, an Office add-in, a Flutter mobile gateway (planned), and an admin dashboard.
 
-## Repo layout
+This repository contains **infrastructure and scaffolding only** — business modules (campaigns, billing, webhooks, and so on) are intentionally out of scope for this phase.
 
-| Folder | Purpose |
-|--------|---------|
-| `server/` | Node.js + Express API (Supabase for DB/API) |
-| `frontend/` | React SPA (landing, demo, signup, install, admin, docs, privacy, terms, ios-shortcut) |
-| `license-server/` | Master license server (verify, revoke, God View; deploy separately) |
-| `god-view/` | Author dashboard — served by license-server at /god-view |
-| `excel-addin/` | Office.js task pane (login + enqueue from sheet) — served at /add-in |
-| `android/` | Android gateway app (poll, send SMS, report status) |
-| `landing-web/`, `admin-web/`, etc. | Legacy fallback if `frontend` not built |
+## Repository layout
 
-## Quick start (API)
+| Path                   | Role                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `apps/api`             | NestJS HTTP API — health check, config placeholder, `common/` + `modules/` layout |
+| `apps/admin-web`       | Next.js admin UI — App Router, Tailwind, placeholder dashboard                    |
+| `apps/excel-addin`     | React + Vite task pane **shell** (Office.js integration deferred)                 |
+| `apps/mobile-gateway`  | **Flutter scaffold** — README + `docs.md` only (no generated app)                 |
+| `packages/config`      | Shared strict `tsconfig` base                                                     |
+| `packages/types`       | Cross-app TypeScript types                                                        |
+| `packages/validation`  | Zod schemas / parsers                                                             |
+| `packages/constants`   | Non-secret shared constants                                                       |
+| `packages/utils`       | Pure utilities                                                                    |
+| `packages/ui`          | Presentational React primitives                                                   |
+| `infra/docker`         | Production-oriented Dockerfiles for API + admin                                   |
+| `infra/github-actions` | CI documentation (workflows live in `.github/workflows`)                          |
+| `docs/architecture`    | High-level system overview                                                        |
+| `docs/adr`             | Architecture Decision Record template                                             |
+| `docs/runbooks`        | Incident runbook template                                                         |
+| `scripts`              | Placeholder for automation entry points                                           |
 
-```bash
-cd server
-npm run bootstrap   # checks Node, npm install, creates .env from example
-# Edit .env with Supabase keys, then:
-npm run dev
-```
+## Prerequisites
 
-Or manually: `cp .env.example .env`, `npm install`, `npm run dev`.
+- **Node.js** 20.10+ (CI and Docker use 22 LTS)
+- **pnpm** 9+ (`packageManager` is pinned in root `package.json`)
 
-**Quick start:** Run `npm run build:frontend` from repo root (or `cd frontend && npm run build`), then `cd server && npm run dev`.  
-Landing: **http://localhost:3000** · Health: **http://localhost:3000/api/health**
-
-### Auth & queue (after [SETUP.md](server/SETUP.md))
-
-```http
-POST /api/auth/register
-Content-Type: application/json
-
-{"email":"you@example.com","password":"yourpassword","terms_accepted":true}
-
-POST /api/auth/login
-Content-Type: application/json
-
-{"email":"you@example.com","password":"yourpassword"}
-
-POST /api/messages
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{"to_phone":"+15551234567","body":"Hello from LocalBlast"}
-
-POST /api/messages/claim-next
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{"device_id":"<optional>"}
-
-PATCH /api/messages/<id>/status
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{"status":"sent"}
-```
-
-## Web installer
-
-Visit **http://localhost:3000/install** for the 3-step setup wizard (database, branding, admin account). Run `sql/001_initial.sql` and `sql/002_claim_next_message.sql` in Supabase first.
-
-## Admin dashboard
-
-Visit **http://localhost:3000/admin** and sign in with an admin account. Features: stats, users, API key manager, brand settings (site name, support email, primary color), server health, update button.
-
-## Database schema
-
-Tables are created in **Supabase** (SQL Editor), not via a local Postgres URL. See `server/sql/001_initial.sql`.
+## Local setup
 
 ```bash
-npm run db:sql-help
+pnpm install
+pnpm build
+pnpm lint
+pnpm typecheck
+pnpm test
 ```
 
-## Licensing
+Copy env samples before running services:
 
-For production, deploy the **license server** (`license-server/`) and set `LICENSE_SERVER_URL` and `PURCHASE_CODE` in the main server `.env`. See `license-server/README.md`.
+- Root: `.env.example`
+- `apps/api/.env.example`
+- `apps/admin-web/.env.example`
+- `apps/excel-addin/.env.example`
 
-## Release notifications
+`@nestjs/config` loads `.env` from the API working directory when present. You can also use Node’s built-in env file loading (20+), for example `node --env-file=.env apps/api/dist/main.js`, when running compiled output manually.
 
-On push to `main`, `.github/workflows/notify-update.yml` POSTs to the license server. Configure `MASTER_SERVER_URL` and `MASTER_SERVER_SECRET` in GitHub repo secrets. Admin dashboards show "Update available" when a newer version is published.
+## Scripts (root)
 
-## Requirements
+| Script           | Description                                                          |
+| ---------------- | -------------------------------------------------------------------- |
+| `pnpm dev`       | `turbo dev` — runs `dev` tasks where defined (API watch, Next, Vite) |
+| `pnpm build`     | `turbo build` — libraries + apps                                     |
+| `pnpm lint`      | ESLint (type-checked) across workspaces                              |
+| `pnpm typecheck` | `tsc --noEmit` / project checks per package                          |
+| `pnpm test`      | Vitest (packages + Excel) and Jest (API)                             |
+| `pnpm format`    | Prettier write                                                       |
+| `pnpm prepare`   | Husky install (Git hooks)                                            |
 
-- Node.js 18+
-- A [Supabase](https://supabase.com) project
+## Engineering standards
+
+1. **No cross-app imports** — share code only via `@sms-localblast/*` packages.
+2. **Thin controllers and route handlers** — orchestration belongs in services, use-cases, or server modules — not in React views.
+3. **Shared domain types** live in `@sms-localblast/types`; do not duplicate shapes inside apps.
+4. **Validation at boundaries** — Zod parsers in `@sms-localblast/validation` (extend over time).
+5. **Strict TypeScript** — `strict` + additional checks in `packages/config/tsconfig/base.json`; avoid `any`.
+6. **Git hooks** — Husky runs `lint-staged` (Prettier + ESLint); commit messages use **Conventional Commits** via Commitlint.
+7. **Conventional commits** — required by Commitlint (`commitlint.config.cjs`).
+
+## Platform notes
+
+- **Windows**: `next.config.ts` disables `output: 'standalone'` by default to avoid symlink errors during `next build`. Linux CI and Docker set `NEXT_STANDALONE_OUTPUT=true` (see `infra/docker/Dockerfile.admin-web`).
+- **Excel add-in**: Vite aliases `@sms-localblast/types` to **TypeScript source** so bundling does not rely on CJS named-export interop from `dist`. Runtime consumers (Nest) continue to use compiled `dist` outputs.
+
+## Docker
+
+See `infra/docker/README.md`. Builds assume a committed `pnpm-lock.yaml`.
+
+## CI
+
+GitHub Actions workflow: `.github/workflows/ci.yml` — install (frozen lockfile), lint, typecheck, test, build.
 
 ## Documentation
 
-- **User & Developer Manual** — http://localhost:3000/docs (installation, API, Excel, Android, iOS, troubleshooting)
-- `server/SETUP.md` — Quick setup checklist
-- `PACKAGING.md` — CodeCanyon zip packaging
+- Architecture: `docs/architecture/overview.md`
+- ADR template: `docs/adr/0000-template.md`
+- Runbook template: `docs/runbooks/_template.md`
+
+## License
+
+Private / unlicensed until you add a `LICENSE` file for distribution.

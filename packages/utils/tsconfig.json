@@ -1,0 +1,9 @@
+{
+  "extends": "@sms-localblast/config/tsconfig/base.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "vitest.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}

@@ -1,0 +1,44 @@
+:root {
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+body {
+  margin: 0;
+}
+
+.taskpane {
+  padding: 16px;
+}
+
+.taskpane__header h1 {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+}
+
+.taskpane__eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+  color: #64748b;
+}
+
+.taskpane__body {
+  margin-top: 12px;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+code {
+  font-size: 0.85rem;
+  background: #e2e8f0;
+  padding: 2px 4px;
+  border-radius: 4px;
+}

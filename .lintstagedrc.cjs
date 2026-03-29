@@ -5,6 +5,6 @@ module.exports = {
   '*.{ts,tsx}': (filenames) => {
     const cwd = process.cwd();
     const relative = filenames.map((f) => path.relative(cwd, f));
-    return `eslint --max-warnings 0 --fix ${relative.join(' ')}`;
+    return `eslint --max-warnings 0 --no-warn-ignored --fix ${relative.join(' ')}`;
   },
 };

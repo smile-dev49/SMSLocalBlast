@@ -10,100 +10,164 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum MembershipRole {
-  OWNER
-  ADMIN
-  MEMBER
-  VIEWER
+enum UserGlobalStatus {
+  ACTIVE
+  SUSPENDED
+  INVITED
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum RoleScope {
+  SYSTEM
+  ORGANIZATION
+}
+
+enum AuditAction {
+  AUTH_REGISTER
+  AUTH_LOGIN
+  AUTH_REFRESH
+  AUTH_LOGOUT
+  AUTH_LOGOUT_ALL
+  SESSION_REVOKED
 }
 
 model Organization {
-  id        String   @id @default(cuid())
+  id        String              @id @default(cuid())
   name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  slug      String              @unique
+  status    OrganizationStatus  @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 
-  memberships Membership[]
+  memberships Membership[]      @relation("OrganizationMemberships")
+  sessions    Session[]         @relation("OrganizationSessions")
   auditLogs   AuditLog[]
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String            @id @default(cuid())
+  email           String            @unique
+  passwordHash   String
+  firstName      String
+  lastName       String
+  globalStatus   UserGlobalStatus  @default(ACTIVE)
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
-  memberships Membership[]
-  sessions    Session[]
-  auditLogs   AuditLog[] @relation("AuditActor")
+  memberships Membership[]         @relation("UserMemberships")
+  sessions    Session[]           @relation("UserSessions")
+  auditLogs   AuditLog[]         @relation("AuditActor")
+
+  invitedMemberships Membership[] @relation("InvitedByMemberships")
 }
 
-/// Named role catalog (org-agnostic keys). Memberships reference a role row.
 model Role {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  label     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String           @id @default(cuid())
+  name         String
+  code         String           @unique
+  description  String?
+  scope         RoleScope        @default(ORGANIZATION)
+  isSystemRole Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
-  memberships Membership[]
+  memberships    Membership[] @relation("RoleMemberships")
+  rolePermissions RolePermission[] @relation("RoleRolePermissions")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
+
+  rolePermissions RolePermission[] @relation("PermissionRolePermissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation("RoleRolePermissions", fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation("PermissionRolePermissions", fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
 }
 
 model Membership {
-  id             String         @id @default(cuid())
-  organizationId String
-  userId         String
-  roleId         String
-  roleKind       MembershipRole @default(MEMBER)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id              String            @id @default(cuid())
+  userId          String
+  organizationId  String
+  roleId          String
+  status          MembershipStatus @default(ACTIVE)
+  joinedAt        DateTime          @default(now())
+  invitedByUserId String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role         Role         @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  organization Organization @relation("OrganizationMemberships", fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation("UserMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  role         Role         @relation("RoleMemberships", fields: [roleId], references: [id], onDelete: Restrict)
+  invitedBy    User?        @relation("InvitedByMemberships", fields: [invitedByUserId], references: [id], onDelete: SetNull)
 
-  @@unique([organizationId, userId])
+  @@unique([userId, organizationId])
   @@index([userId])
   @@index([organizationId])
+  @@index([roleId])
 }
 
 model Session {
-  id               String   @id @default(cuid())
-  userId           String
-  refreshTokenHash String?
-  userAgent        String?
-  ipAddress        String?
-  expiresAt        DateTime
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  userId             String
+  organizationId     String?
+  refreshTokenHash  String
+  userAgent          String?
+  ipAddress          String?
+  deviceFingerprint  String?
+  isRevoked          Boolean  @default(false)
+  revokedAt          DateTime?
+  expiresAt         DateTime
+  lastUsedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User          @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation("OrganizationSessions", fields: [organizationId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([organizationId])
+  @@index([isRevoked])
   @@index([expiresAt])
-}
-
-enum AuditAction {
-  SYSTEM
-  AUTH
-  ORG
-  USER
-  DATA
+  @@index([lastUsedAt])
 }
 
 model AuditLog {
-  id             String      @id @default(cuid())
-  organizationId String?
+  id             String   @id @default(cuid())
   actorUserId    String?
-  action         AuditAction @default(SYSTEM)
-  resource       String
-  resourceId     String?
+  organizationId String?
+  action         AuditAction
+  entityType     String?
+  entityId       String?
   metadata       Json?
   ipAddress      String?
   userAgent      String?
   requestId      String?
-  createdAt      DateTime    @default(now())
+  createdAt      DateTime @default(now())
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   actor        User?         @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)

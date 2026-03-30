@@ -46,6 +46,11 @@ describe('Health (e2e)', () => {
 
   it('GET /api/v1/health/live returns alive', async () => {
     const res = await request(app.getHttpServer()).get('/api/v1/health/live');
+    if (res.status !== 200) {
+      throw new Error(
+        `Expected 200 but got ${String(res.status)}. Body: ${JSON.stringify(res.body)}`,
+      );
+    }
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ status: 'alive' });
     expect(typeof res.body.uptimeSeconds).toBe('number');
@@ -53,6 +58,11 @@ describe('Health (e2e)', () => {
 
   it('GET /api/v1/health/ready returns ready when checks pass', async () => {
     const res = await request(app.getHttpServer()).get('/api/v1/health/ready');
+    if (res.status !== 200) {
+      throw new Error(
+        `Expected 200 but got ${String(res.status)}. Body: ${JSON.stringify(res.body)}`,
+      );
+    }
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
       status: 'ready',

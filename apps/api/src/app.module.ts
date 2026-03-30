@@ -5,6 +5,9 @@ import { LoggerModule } from 'nestjs-pino';
 import { validateConfiguration } from './common/config/config.validation';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AccessPlaceholderGuard } from './common/guards/access-placeholder.guard';
+import { RolesGuard } from './common/guards/roles.guard';
+import { PermissionsGuard } from './common/guards/permissions.guard';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HealthInfrastructureModule } from './infrastructure/health/health.module';
 import { PrismaInfrastructureModule } from './infrastructure/prisma/prisma.module';
 import { QueueInfrastructureModule } from './infrastructure/queue/queue.module';
@@ -78,6 +81,9 @@ const queueInfrastructureEnabled = process.env['QUEUES_ENABLED'] !== 'false';
   ],
   providers: [
     { provide: APP_GUARD, useClass: AccessPlaceholderGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
+    JwtAuthGuard,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })

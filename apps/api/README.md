@@ -80,6 +80,14 @@ pnpm --filter @sms-localblast/api test:e2e
 pnpm --filter @sms-localblast/api test:all
 ```
 
+## Auth + RBAC Seed
+
+Seed the initial permissions/roles (idempotent) used by the auth/session endpoints:
+
+```bash
+pnpm --filter @sms-localblast/api seed
+```
+
 ## Database migrations
 
 From repo root (requires `DATABASE_URL`):

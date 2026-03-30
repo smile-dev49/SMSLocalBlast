@@ -51,6 +51,29 @@ enum DeviceHealthStatus {
   UNKNOWN
 }
 
+enum ContactStatus {
+  ACTIVE
+  BLOCKED
+  OPTED_OUT
+  ARCHIVED
+}
+
+enum ContactSource {
+  MANUAL
+  CSV_IMPORT
+  XLSX_IMPORT
+  API
+  EXCEL_ADDIN
+}
+
+enum ContactCustomFieldValueType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  DATE
+  JSON
+}
+
 enum AuditAction {
   AUTH_REGISTER
   AUTH_LOGIN
@@ -64,6 +87,19 @@ enum AuditAction {
   DEVICE_PRIMARY_SET
   DEVICE_QUOTA_UPDATED
   DEVICE_HEARTBEAT_RECEIVED
+  CONTACT_CREATED
+  CONTACT_UPDATED
+  CONTACT_DELETED
+  CONTACT_OPTED_OUT
+  CONTACT_BLOCKED
+  CONTACT_UNBLOCKED
+  CONTACT_LIST_CREATED
+  CONTACT_LIST_UPDATED
+  CONTACT_LIST_DELETED
+  CONTACT_LIST_MEMBERS_ADDED
+  CONTACT_LIST_MEMBER_REMOVED
+  CONTACTS_IMPORT_PREVIEWED
+  CONTACTS_IMPORT_CONFIRMED
 }
 
 model Organization {
@@ -79,6 +115,10 @@ model Organization {
   sessions    Session[]         @relation("OrganizationSessions")
   devices Device[]             @relation("OrganizationDevices")
   deviceHeartbeats DeviceHeartbeat[] @relation("OrganizationDeviceHeartbeats")
+  contacts Contact[]            @relation("OrganizationContacts")
+  contactLists ContactList[]    @relation("OrganizationContactLists")
+  contactListMemberships ContactListMembership[] @relation("OrganizationContactListMemberships")
+  contactCustomFieldValues ContactCustomFieldValue[] @relation("OrganizationContactCustomFieldValues")
   auditLogs   AuditLog[]
 }
 
@@ -99,6 +139,8 @@ model User {
   sessions    Session[]           @relation("UserSessions")
   auditLogs   AuditLog[]         @relation("AuditActor")
   createdDevices Device[]       @relation("UserCreatedDevices")
+  createdContacts Contact[]     @relation("UserCreatedContacts")
+  createdContactLists ContactList[] @relation("UserCreatedContactLists")
 
   invitedMemberships Membership[] @relation("InvitedByMemberships")
 }
@@ -247,6 +289,91 @@ model DeviceHeartbeat {
   @@index([deviceId])
   @@index([organizationId])
   @@index([deviceId, createdAt(sort: Desc)])
+}
+
+model Contact {
+  id                    String        @id @default(cuid())
+  organizationId        String
+  createdByUserId       String?
+  firstName             String?
+  lastName              String?
+  fullName              String?
+  phoneNumber           String
+  normalizedPhoneNumber String
+  email                 String?
+  status                ContactStatus @default(ACTIVE)
+  source                ContactSource @default(MANUAL)
+  notes                 String?
+  metadata              Json?
+  lastContactedAt       DateTime?
+  optedOutAt            DateTime?
+  blockedAt             DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+
+  organization          Organization  @relation("OrganizationContacts", fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy             User?         @relation("UserCreatedContacts", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  listMemberships       ContactListMembership[] @relation("ContactListMembershipsByContact")
+  customFieldValues     ContactCustomFieldValue[] @relation("ContactCustomFieldValuesByContact")
+
+  @@unique([organizationId, normalizedPhoneNumber])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ContactList {
+  id             String      @id @default(cuid())
+  organizationId String
+  createdByUserId String?
+  name           String
+  description    String?
+  color          String?
+  isArchived     Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  deletedAt      DateTime?
+
+  organization   Organization @relation("OrganizationContactLists", fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User?        @relation("UserCreatedContactLists", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  memberships    ContactListMembership[] @relation("ContactListMembershipsByList")
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model ContactListMembership {
+  id            String      @id @default(cuid())
+  organizationId String
+  contactId     String
+  contactListId String
+  createdAt     DateTime    @default(now())
+
+  organization  Organization @relation("OrganizationContactListMemberships", fields: [organizationId], references: [id], onDelete: Cascade)
+  contact       Contact      @relation("ContactListMembershipsByContact", fields: [contactId], references: [id], onDelete: Cascade)
+  contactList   ContactList  @relation("ContactListMembershipsByList", fields: [contactListId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, contactListId])
+  @@index([organizationId])
+  @@index([contactListId])
+}
+
+model ContactCustomFieldValue {
+  id            String                      @id @default(cuid())
+  organizationId String
+  contactId     String
+  fieldKey      String
+  fieldValue    String
+  valueType     ContactCustomFieldValueType
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+
+  organization  Organization @relation("OrganizationContactCustomFieldValues", fields: [organizationId], references: [id], onDelete: Cascade)
+  contact       Contact      @relation("ContactCustomFieldValuesByContact", fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, fieldKey])
+  @@index([organizationId, fieldKey])
 }
 
 model AuditLog {

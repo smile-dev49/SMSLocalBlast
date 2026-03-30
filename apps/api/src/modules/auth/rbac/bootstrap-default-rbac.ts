@@ -28,6 +28,12 @@ const PERMISSIONS: readonly PermissionDef[] = [
   { code: 'devices.write', description: 'Create/update/delete organization devices' },
   { code: 'devices.manage', description: 'Manage device primary/quota settings' },
   { code: 'devices.heartbeat', description: 'Send organization device heartbeats' },
+  { code: 'contacts.read', description: 'Read organization contacts' },
+  { code: 'contacts.write', description: 'Create/update/delete contacts' },
+  { code: 'contacts.manage', description: 'Manage contact suppression/compliance state' },
+  { code: 'contact-lists.read', description: 'Read organization contact lists' },
+  { code: 'contact-lists.write', description: 'Manage organization contact lists and memberships' },
+  { code: 'imports.contacts', description: 'Preview and confirm contact imports' },
 ];
 
 const ROLES: readonly RoleDef[] = [
@@ -61,6 +67,12 @@ const ROLES: readonly RoleDef[] = [
       'devices.write',
       'devices.manage',
       'devices.heartbeat',
+      'contacts.read',
+      'contacts.write',
+      'contacts.manage',
+      'contact-lists.read',
+      'contact-lists.write',
+      'imports.contacts',
     ],
   },
   {
@@ -69,7 +81,13 @@ const ROLES: readonly RoleDef[] = [
     description: 'Read-only access to own profile and sessions',
     scope: 'ORGANIZATION',
     isSystemRole: true,
-    permissionCodes: ['auth.me.read', 'auth.sessions.read', 'devices.read'],
+    permissionCodes: [
+      'auth.me.read',
+      'auth.sessions.read',
+      'devices.read',
+      'contacts.read',
+      'contact-lists.read',
+    ],
   },
 ];
 

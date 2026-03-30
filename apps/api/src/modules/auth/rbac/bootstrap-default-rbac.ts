@@ -24,6 +24,10 @@ const PERMISSIONS: readonly PermissionDef[] = [
   { code: 'auth.sessions.revoke_all', description: 'Revoke other sessions' },
   { code: 'auth.logout', description: 'Logout current session' },
   { code: 'auth.logout_all', description: 'Logout from other sessions' },
+  { code: 'devices.read', description: 'Read organization devices' },
+  { code: 'devices.write', description: 'Create/update/delete organization devices' },
+  { code: 'devices.manage', description: 'Manage device primary/quota settings' },
+  { code: 'devices.heartbeat', description: 'Send organization device heartbeats' },
 ];
 
 const ROLES: readonly RoleDef[] = [
@@ -49,7 +53,15 @@ const ROLES: readonly RoleDef[] = [
     description: 'Manage sessions and basic operations',
     scope: 'ORGANIZATION',
     isSystemRole: true,
-    permissionCodes: ['auth.me.read', 'auth.sessions.read', 'auth.sessions.revoke'],
+    permissionCodes: [
+      'auth.me.read',
+      'auth.sessions.read',
+      'auth.sessions.revoke',
+      'devices.read',
+      'devices.write',
+      'devices.manage',
+      'devices.heartbeat',
+    ],
   },
   {
     code: 'org_member',
@@ -57,7 +69,7 @@ const ROLES: readonly RoleDef[] = [
     description: 'Read-only access to own profile and sessions',
     scope: 'ORGANIZATION',
     isSystemRole: true,
-    permissionCodes: ['auth.me.read', 'auth.sessions.read'],
+    permissionCodes: ['auth.me.read', 'auth.sessions.read', 'devices.read'],
   },
 ];
 

@@ -41,6 +41,11 @@ export const flatEnvSchema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((v) => v === 'true'),
+
+  // Device heartbeat health (seconds since last heartbeat)
+  DEVICE_ONLINE_THRESHOLD_SECONDS: z.coerce.number().int().positive().default(120),
+  DEVICE_WARNING_THRESHOLD_SECONDS: z.coerce.number().int().positive().default(600),
+  DEVICE_CRITICAL_THRESHOLD_SECONDS: z.coerce.number().int().positive().default(1800),
 });
 
 export type FlatEnv = z.infer<typeof flatEnvSchema>;
@@ -67,6 +72,11 @@ export interface AppConfig {
   readonly swagger: { readonly enabled: boolean };
   readonly log: { readonly level: string };
   readonly queue: { readonly prefix: string; readonly enabled: boolean };
+  readonly device: {
+    readonly onlineThresholdSeconds: number;
+    readonly warningThresholdSeconds: number;
+    readonly criticalThresholdSeconds: number;
+  };
 }
 
 export function parseAppConfig(env: NodeJS.ProcessEnv): AppConfig {
@@ -100,5 +110,10 @@ export function parseAppConfig(env: NodeJS.ProcessEnv): AppConfig {
     swagger: { enabled: flat.SWAGGER_ENABLED },
     log: { level: flat.LOG_LEVEL },
     queue: { prefix: flat.QUEUE_PREFIX, enabled: flat.QUEUES_ENABLED },
+    device: {
+      onlineThresholdSeconds: flat.DEVICE_ONLINE_THRESHOLD_SECONDS,
+      warningThresholdSeconds: flat.DEVICE_WARNING_THRESHOLD_SECONDS,
+      criticalThresholdSeconds: flat.DEVICE_CRITICAL_THRESHOLD_SECONDS,
+    },
   };
 }

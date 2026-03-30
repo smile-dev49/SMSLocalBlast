@@ -31,6 +31,26 @@ enum RoleScope {
   ORGANIZATION
 }
 
+enum DevicePlatform {
+  ANDROID
+  IOS
+}
+
+enum DeviceStatus {
+  PENDING
+  ONLINE
+  OFFLINE
+  SUSPENDED
+  DISCONNECTED
+}
+
+enum DeviceHealthStatus {
+  HEALTHY
+  WARNING
+  CRITICAL
+  UNKNOWN
+}
+
 enum AuditAction {
   AUTH_REGISTER
   AUTH_LOGIN
@@ -38,6 +58,12 @@ enum AuditAction {
   AUTH_LOGOUT
   AUTH_LOGOUT_ALL
   SESSION_REVOKED
+  DEVICE_CREATED
+  DEVICE_UPDATED
+  DEVICE_DELETED
+  DEVICE_PRIMARY_SET
+  DEVICE_QUOTA_UPDATED
+  DEVICE_HEARTBEAT_RECEIVED
 }
 
 model Organization {
@@ -51,6 +77,8 @@ model Organization {
 
   memberships Membership[]      @relation("OrganizationMemberships")
   sessions    Session[]         @relation("OrganizationSessions")
+  devices Device[]             @relation("OrganizationDevices")
+  deviceHeartbeats DeviceHeartbeat[] @relation("OrganizationDeviceHeartbeats")
   auditLogs   AuditLog[]
 }
 
@@ -70,6 +98,7 @@ model User {
   memberships Membership[]         @relation("UserMemberships")
   sessions    Session[]           @relation("UserSessions")
   auditLogs   AuditLog[]         @relation("AuditActor")
+  createdDevices Device[]       @relation("UserCreatedDevices")
 
   invitedMemberships Membership[] @relation("InvitedByMemberships")
 }
@@ -154,6 +183,70 @@ model Session {
   @@index([isRevoked])
   @@index([expiresAt])
   @@index([lastUsedAt])
+}
+
+model Device {
+  id                 String            @id @default(cuid())
+  organizationId     String
+  createdByUserId    String?
+  name               String
+  platform           DevicePlatform
+  appVersion        String?
+  osVersion         String?
+  deviceModel       String?
+  deviceIdentifier  String           @unique
+  pushToken         String?
+  phoneNumber       String?
+  simLabel          String?
+  status             DeviceStatus    @default(PENDING)
+  healthStatus      DeviceHealthStatus @default(UNKNOWN)
+  isActive           Boolean          @default(true)
+  isPrimary          Boolean          @default(false)
+  dailySendLimit    Int              @default(1000)
+  hourlySendLimit   Int              @default(100)
+  dailySentCount    Int              @default(0)
+  hourlySentCount   Int              @default(0)
+  lastSeenAt         DateTime?
+  lastHeartbeatAt    DateTime?
+  lastKnownIp        String?
+  metadata           Json?
+  capabilities       Json?
+  lastQuotaResetAt   DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  deletedAt          DateTime?
+
+  organization       Organization     @relation("OrganizationDevices", fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy          User?           @relation("UserCreatedDevices", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  heartbeats         DeviceHeartbeat[] @relation("DeviceHeartbeats")
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([platform])
+  @@index([lastHeartbeatAt])
+  @@index([organizationId, isActive])
+  @@index([organizationId, status])
+}
+
+model DeviceHeartbeat {
+  id               String         @id @default(cuid())
+  deviceId         String
+  organizationId   String
+  status           DeviceStatus
+  batteryLevel    Int?
+  signalStrength  Int?
+  networkType     String?
+  appVersion      String?
+  ipAddress       String?
+  payload         Json?
+  createdAt       DateTime       @default(now())
+
+  device          Device          @relation("DeviceHeartbeats", fields: [deviceId], references: [id], onDelete: Cascade)
+  organization    Organization    @relation("OrganizationDeviceHeartbeats", fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId])
+  @@index([organizationId])
+  @@index([deviceId, createdAt(sort: Desc)])
 }
 
 model AuditLog {

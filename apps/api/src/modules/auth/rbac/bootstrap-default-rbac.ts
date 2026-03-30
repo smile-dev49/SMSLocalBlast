@@ -34,6 +34,10 @@ const PERMISSIONS: readonly PermissionDef[] = [
   { code: 'contact-lists.read', description: 'Read organization contact lists' },
   { code: 'contact-lists.write', description: 'Manage organization contact lists and memberships' },
   { code: 'imports.contacts', description: 'Preview and confirm contact imports' },
+  { code: 'templates.read', description: 'Read organization templates' },
+  { code: 'templates.write', description: 'Create/update organization templates' },
+  { code: 'templates.manage', description: 'Archive/delete templates' },
+  { code: 'templates.render', description: 'Validate and render template previews' },
 ];
 
 const ROLES: readonly RoleDef[] = [
@@ -73,6 +77,10 @@ const ROLES: readonly RoleDef[] = [
       'contact-lists.read',
       'contact-lists.write',
       'imports.contacts',
+      'templates.read',
+      'templates.write',
+      'templates.manage',
+      'templates.render',
     ],
   },
   {
@@ -87,6 +95,8 @@ const ROLES: readonly RoleDef[] = [
       'devices.read',
       'contacts.read',
       'contact-lists.read',
+      'templates.read',
+      'templates.render',
     ],
   },
 ];

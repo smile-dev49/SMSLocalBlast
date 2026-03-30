@@ -221,6 +221,14 @@ export class ContactsService {
     return this.mapContact(row);
   }
 
+  async getContactMergeFields(
+    principal: AuthPrincipal,
+    contactId: string,
+  ): Promise<Record<string, string>> {
+    const row = await this.getOwnedContact(principal, contactId);
+    return this.mapContact(row).mergeFields;
+  }
+
   async updateContact(
     principal: AuthPrincipal,
     contactId: string,

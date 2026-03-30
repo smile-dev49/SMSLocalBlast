@@ -74,6 +74,11 @@ enum ContactCustomFieldValueType {
   JSON
 }
 
+enum TemplateChannelType {
+  SMS
+  MMS
+}
+
 enum AuditAction {
   AUTH_REGISTER
   AUTH_LOGIN
@@ -100,6 +105,11 @@ enum AuditAction {
   CONTACT_LIST_MEMBER_REMOVED
   CONTACTS_IMPORT_PREVIEWED
   CONTACTS_IMPORT_CONFIRMED
+  TEMPLATE_CREATED
+  TEMPLATE_UPDATED
+  TEMPLATE_DELETED
+  TEMPLATE_VALIDATED
+  TEMPLATE_PREVIEW_RENDERED
 }
 
 model Organization {
@@ -119,6 +129,7 @@ model Organization {
   contactLists ContactList[]    @relation("OrganizationContactLists")
   contactListMemberships ContactListMembership[] @relation("OrganizationContactListMemberships")
   contactCustomFieldValues ContactCustomFieldValue[] @relation("OrganizationContactCustomFieldValues")
+  templates             Template[] @relation("OrganizationTemplates")
   auditLogs   AuditLog[]
 }
 
@@ -141,6 +152,7 @@ model User {
   createdDevices Device[]       @relation("UserCreatedDevices")
   createdContacts Contact[]     @relation("UserCreatedContacts")
   createdContactLists ContactList[] @relation("UserCreatedContactLists")
+  createdTemplates    Template[]    @relation("UserCreatedTemplates")
 
   invitedMemberships Membership[] @relation("InvitedByMemberships")
 }
@@ -374,6 +386,28 @@ model ContactCustomFieldValue {
 
   @@unique([contactId, fieldKey])
   @@index([organizationId, fieldKey])
+}
+
+model Template {
+  id             String              @id @default(cuid())
+  organizationId String
+  createdByUserId String?
+  name           String
+  description    String?
+  body           String
+  channelType    TemplateChannelType @default(SMS)
+  isArchived     Boolean             @default(false)
+  metadata       Json?
+  lastUsedAt     DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  deletedAt      DateTime?
+
+  organization   Organization        @relation("OrganizationTemplates", fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User?               @relation("UserCreatedTemplates", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
 }
 
 model AuditLog {

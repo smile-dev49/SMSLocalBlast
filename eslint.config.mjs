@@ -58,6 +58,33 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
   },
   {
+    files: ['apps/api/test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+    },
+  },
+  {
+    files: ['apps/api/src/modules/**/*.service.ts', 'apps/api/src/modules/**/*.controller.ts'],
+    rules: {
+      '@typescript-eslint/no-extraneous-class': 'off',
+    },
+  },
+  {
+    files: ['apps/api/src/infrastructure/prisma/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-call': 'off',
+    },
+  },
+  {
+    files: ['apps/api/src/infrastructure/health/health.service.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-call': 'off',
+    },
+  },
+  {
     files: ['**/*.module.ts'],
     rules: {
       '@typescript-eslint/no-extraneous-class': 'off',

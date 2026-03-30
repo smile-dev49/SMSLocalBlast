@@ -1,16 +1,35 @@
 import 'reflect-metadata';
-import { Logger } from '@nestjs/common';
+import { type INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
-import { parseNodeEnv } from '@sms-localblast/validation';
+import { configureHttpApplication } from './bootstrap/http-application';
+
+function isNestExpressApp(app: INestApplication): app is NestExpressApplication {
+  return typeof (app as NestExpressApplication).getHttpAdapter === 'function';
+}
 
 async function bootstrap(): Promise<void> {
-  const nodeEnv = parseNodeEnv(process.env['NODE_ENV']);
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  const port = Number(process.env['PORT'] ?? 3000);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    bodyParser: false,
+  });
+
+  app.useLogger(app.get(Logger));
+
+  if (!isNestExpressApp(app)) {
+    throw new Error('Expected Express adapter');
+  }
+
+  const config = app.get(ConfigService);
+  configureHttpApplication(app, config);
+
+  app.enableShutdownHooks();
+
+  const port = config.getOrThrow<number>('port');
   await app.listen(port);
-  const url = await app.getUrl();
-  Logger.log(`Listening on ${url} (${nodeEnv})`, 'Bootstrap');
 }
 
 void bootstrap();

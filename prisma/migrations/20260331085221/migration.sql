@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "MessageGatewayEventReceipt_outboundMessageId_eventType_idempote" RENAME TO "MessageGatewayEventReceipt_outboundMessageId_eventType_idem_key";

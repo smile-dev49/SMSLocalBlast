@@ -79,6 +79,57 @@ enum TemplateChannelType {
   MMS
 }
 
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  PROCESSING
+  PAUSED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum CampaignRecipientStatus {
+  PENDING
+  SKIPPED
+  READY
+  QUEUED
+  PROCESSING
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum CampaignRecipientSourceType {
+  DIRECT_CONTACT
+  CONTACT_LIST
+  IMPORT_SNAPSHOT
+}
+
+enum MessageChannelType {
+  SMS
+  MMS
+}
+
+enum MessageStatus {
+  PENDING
+  READY
+  QUEUED
+  DISPATCHING
+  DISPATCHED
+  SENT
+  DELIVERED
+  FAILED
+  SKIPPED
+  CANCELLED
+}
+
+enum MessageDirection {
+  OUTBOUND
+  INBOUND
+}
+
 enum AuditAction {
   AUTH_REGISTER
   AUTH_LOGIN
@@ -110,6 +161,28 @@ enum AuditAction {
   TEMPLATE_DELETED
   TEMPLATE_VALIDATED
   TEMPLATE_PREVIEW_RENDERED
+  CAMPAIGN_CREATED
+  CAMPAIGN_UPDATED
+  CAMPAIGN_DELETED
+  CAMPAIGN_PREVIEWED
+  CAMPAIGN_SCHEDULED
+  CAMPAIGN_STARTED
+  CAMPAIGN_PAUSED
+  CAMPAIGN_CANCELLED
+  CAMPAIGN_RECIPIENTS_PREPARED
+  MESSAGES_GENERATED_FOR_CAMPAIGN
+  MESSAGE_QUEUED
+  MESSAGE_RETRY_SCHEDULED
+  MESSAGE_CANCELLED
+  MESSAGE_FAILED
+  MESSAGE_DISPATCHED
+  DEVICE_GATEWAY_AUTHENTICATED
+  MESSAGE_CLAIMED_BY_DEVICE
+  MESSAGE_SENT_REPORTED
+  MESSAGE_DELIVERED_REPORTED
+  MESSAGE_FAILED_REPORTED
+  CAMPAIGN_FINALIZED
+  OPERATIONS_VIEWED
 }
 
 model Organization {
@@ -130,6 +203,11 @@ model Organization {
   contactListMemberships ContactListMembership[] @relation("OrganizationContactListMemberships")
   contactCustomFieldValues ContactCustomFieldValue[] @relation("OrganizationContactCustomFieldValues")
   templates             Template[] @relation("OrganizationTemplates")
+  campaigns             Campaign[] @relation("OrganizationCampaigns")
+  campaignRecipients    CampaignRecipient[] @relation("OrganizationCampaignRecipients")
+  outboundMessages      OutboundMessage[] @relation("OrganizationOutboundMessages")
+  messageStatusEvents   MessageStatusEvent[] @relation("OrganizationMessageStatusEvents")
+  gatewayEventReceipts  MessageGatewayEventReceipt[] @relation("OrganizationGatewayEventReceipts")
   auditLogs   AuditLog[]
 }
 
@@ -153,6 +231,7 @@ model User {
   createdContacts Contact[]     @relation("UserCreatedContacts")
   createdContactLists ContactList[] @relation("UserCreatedContactLists")
   createdTemplates    Template[]    @relation("UserCreatedTemplates")
+  createdCampaigns   Campaign[]     @relation("UserCreatedCampaigns")
 
   invitedMemberships Membership[] @relation("InvitedByMemberships")
 }
@@ -260,6 +339,11 @@ model Device {
   hourlySendLimit   Int              @default(100)
   dailySentCount    Int              @default(0)
   hourlySentCount   Int              @default(0)
+  authSecretHash    String?
+  lastAuthenticatedAt DateTime?
+  lastTokenIssuedAt DateTime?
+  deviceAuthVersion Int              @default(1)
+  lastDispatchAt    DateTime?
   lastSeenAt         DateTime?
   lastHeartbeatAt    DateTime?
   lastKnownIp        String?
@@ -273,6 +357,7 @@ model Device {
   organization       Organization     @relation("OrganizationDevices", fields: [organizationId], references: [id], onDelete: Cascade)
   createdBy          User?           @relation("UserCreatedDevices", fields: [createdByUserId], references: [id], onDelete: SetNull)
   heartbeats         DeviceHeartbeat[] @relation("DeviceHeartbeats")
+  outboundMessages   OutboundMessage[] @relation("DeviceOutboundMessages")
 
   @@index([organizationId])
   @@index([status])
@@ -328,6 +413,8 @@ model Contact {
   createdBy             User?         @relation("UserCreatedContacts", fields: [createdByUserId], references: [id], onDelete: SetNull)
   listMemberships       ContactListMembership[] @relation("ContactListMembershipsByContact")
   customFieldValues     ContactCustomFieldValue[] @relation("ContactCustomFieldValuesByContact")
+  campaignRecipients    CampaignRecipient[]       @relation("ContactCampaignRecipients")
+  outboundMessages      OutboundMessage[]
 
   @@unique([organizationId, normalizedPhoneNumber])
   @@index([organizationId])
@@ -405,9 +492,174 @@ model Template {
 
   organization   Organization        @relation("OrganizationTemplates", fields: [organizationId], references: [id], onDelete: Cascade)
   createdBy      User?               @relation("UserCreatedTemplates", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  campaigns      Campaign[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
+}
+
+model Campaign {
+  id               String         @id @default(cuid())
+  organizationId   String
+  createdByUserId String?
+  name             String
+  description      String?
+  status           CampaignStatus @default(DRAFT)
+  templateId       String?
+  scheduledAt      DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+  pausedAt         DateTime?
+  failureReason    String?
+  timezone         String?
+  metadata         Json?
+  /// Persisted targeting: `{ contactIds: string[], contactListIds: string[] }` for snapshot regeneration.
+  target           Json?
+  /// Template snapshot rendering: `strict` fails missing vars per recipient; `empty` substitutes blanks.
+  missingVariableStrategy String @default("empty")
+  recipientCount   Int            @default(0)
+  readyCount       Int            @default(0)
+  sentCount        Int            @default(0)
+  deliveredCount   Int            @default(0)
+  failedCount      Int            @default(0)
+  skippedCount     Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+
+  organization Organization         @relation("OrganizationCampaigns", fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?                @relation("UserCreatedCampaigns", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  template     Template?            @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  recipients   CampaignRecipient[]
+  outboundMessages OutboundMessage[] @relation("CampaignOutboundMessages")
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([organizationId, status])
+}
+
+model CampaignRecipient {
+  id                    String                      @id @default(cuid())
+  organizationId        String
+  campaignId            String
+  contactId               String?
+  sourceType            CampaignRecipientSourceType
+  sourceRefId           String?
+  normalizedPhoneNumber String
+  resolvedName          String?
+  mergeFields           Json?
+  renderedBody          String?
+  status                CampaignRecipientStatus     @default(PENDING)
+  skipReason            String?
+  scheduledAt           DateTime?
+  queuedAt              DateTime?
+  processedAt           DateTime?
+  sentAt                DateTime?
+  deliveredAt           DateTime?
+  failedAt              DateTime?
+  failureReason         String?
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
+
+  organization Organization @relation("OrganizationCampaignRecipients", fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign     Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation("ContactCampaignRecipients", fields: [contactId], references: [id], onDelete: SetNull)
+  outboundMessages OutboundMessage[] @relation("CampaignRecipientOutboundMessages")
+
+  @@index([campaignId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([normalizedPhoneNumber])
+  @@index([campaignId, status])
+}
+
+model OutboundMessage {
+  id                  String             @id @default(cuid())
+  organizationId      String
+  campaignId          String?
+  campaignRecipientId String?
+  deviceId            String?
+  contactId           String?
+  channelType         MessageChannelType @default(SMS)
+  direction           MessageDirection   @default(OUTBOUND)
+  normalizedPhoneNumber String
+  renderedBody        String
+  mediaUrl            String?
+  status              MessageStatus      @default(PENDING)
+  failureCode         String?
+  failureReason       String?
+  retryCount          Int                @default(0)
+  maxRetries          Int                @default(3)
+  nextRetryAt         DateTime?
+  scheduledAt         DateTime?
+  queuedAt            DateTime?
+  dispatchingAt       DateTime?
+  dispatchedAt        DateTime?
+  sentAt              DateTime?
+  deliveredAt         DateTime?
+  failedAt            DateTime?
+  cancelledAt         DateTime?
+  claimedAt           DateTime?
+  claimIdempotencyKey String?
+  providerReference   String?
+  lastStatusAt        DateTime?
+  metadata            Json?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  organization        Organization       @relation("OrganizationOutboundMessages", fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign            Campaign?          @relation("CampaignOutboundMessages", fields: [campaignId], references: [id], onDelete: SetNull)
+  campaignRecipient   CampaignRecipient? @relation("CampaignRecipientOutboundMessages", fields: [campaignRecipientId], references: [id], onDelete: SetNull)
+  device              Device?            @relation("DeviceOutboundMessages", fields: [deviceId], references: [id], onDelete: SetNull)
+  contact             Contact?           @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  statusEvents        MessageStatusEvent[] @relation("OutboundMessageStatusEvents")
+  gatewayEventReceipts MessageGatewayEventReceipt[] @relation("OutboundMessageGatewayEventReceipts")
+
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([campaignRecipientId])
+  @@index([deviceId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([nextRetryAt])
+  @@index([organizationId, status])
+  @@index([campaignId, status])
+}
+
+model MessageStatusEvent {
+  id                String        @id @default(cuid())
+  organizationId    String
+  outboundMessageId String
+  fromStatus        MessageStatus?
+  toStatus          MessageStatus
+  reason            String?
+  metadata          Json?
+  createdAt         DateTime      @default(now())
+
+  organization      Organization  @relation("OrganizationMessageStatusEvents", fields: [organizationId], references: [id], onDelete: Cascade)
+  outboundMessage   OutboundMessage @relation("OutboundMessageStatusEvents", fields: [outboundMessageId], references: [id], onDelete: Cascade)
+
+  @@index([outboundMessageId])
+  @@index([organizationId])
+  @@index([createdAt])
+}
+
+model MessageGatewayEventReceipt {
+  id                String      @id @default(cuid())
+  organizationId    String
+  outboundMessageId String
+  eventType         String
+  idempotencyKey    String
+  createdAt         DateTime    @default(now())
+
+  organization      Organization @relation("OrganizationGatewayEventReceipts", fields: [organizationId], references: [id], onDelete: Cascade)
+  outboundMessage   OutboundMessage @relation("OutboundMessageGatewayEventReceipts", fields: [outboundMessageId], references: [id], onDelete: Cascade)
+
+  @@unique([outboundMessageId, eventType, idempotencyKey])
+  @@index([organizationId])
+  @@index([createdAt])
 }
 
 model AuditLog {

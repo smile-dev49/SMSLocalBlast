@@ -15,6 +15,6 @@ import { ContactsListsService } from './contacts-lists.service';
     ContactsImportService,
     ContactsListsService,
   ],
-  exports: [ContactsService],
+  exports: [ContactsService, ContactsRepository],
 })
 export class ContactsModule {}

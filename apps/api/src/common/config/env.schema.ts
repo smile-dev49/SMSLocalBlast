@@ -46,6 +46,8 @@ export const flatEnvSchema = z.object({
   DEVICE_ONLINE_THRESHOLD_SECONDS: z.coerce.number().int().positive().default(120),
   DEVICE_WARNING_THRESHOLD_SECONDS: z.coerce.number().int().positive().default(600),
   DEVICE_CRITICAL_THRESHOLD_SECONDS: z.coerce.number().int().positive().default(1800),
+  DEVICE_GATEWAY_JWT_SECRET: z.string().min(16).optional(),
+  DEVICE_GATEWAY_ACCESS_TTL: z.coerce.number().int().positive().default(900),
 });
 
 export type FlatEnv = z.infer<typeof flatEnvSchema>;
@@ -76,6 +78,10 @@ export interface AppConfig {
     readonly onlineThresholdSeconds: number;
     readonly warningThresholdSeconds: number;
     readonly criticalThresholdSeconds: number;
+  };
+  readonly deviceGateway: {
+    readonly jwtSecret?: string;
+    readonly accessTtlSeconds: number;
   };
 }
 
@@ -114,6 +120,10 @@ export function parseAppConfig(env: NodeJS.ProcessEnv): AppConfig {
       onlineThresholdSeconds: flat.DEVICE_ONLINE_THRESHOLD_SECONDS,
       warningThresholdSeconds: flat.DEVICE_WARNING_THRESHOLD_SECONDS,
       criticalThresholdSeconds: flat.DEVICE_CRITICAL_THRESHOLD_SECONDS,
+    },
+    deviceGateway: {
+      ...(flat.DEVICE_GATEWAY_JWT_SECRET ? { jwtSecret: flat.DEVICE_GATEWAY_JWT_SECRET } : {}),
+      accessTtlSeconds: flat.DEVICE_GATEWAY_ACCESS_TTL,
     },
   };
 }

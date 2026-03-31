@@ -119,4 +119,48 @@ export class ContactsRepository {
       select: contactListSelect,
     });
   }
+
+  findContactsByIdsForOrg(args: {
+    readonly organizationId: string;
+    readonly ids: readonly string[];
+  }): Promise<ContactRow[]> {
+    if (args.ids.length === 0) return Promise.resolve([]);
+    return this.prisma.contact.findMany({
+      where: {
+        organizationId: args.organizationId,
+        id: { in: [...args.ids] },
+        deletedAt: null,
+      },
+      select: contactSelect,
+    });
+  }
+
+  listMembershipPairsForLists(args: {
+    readonly organizationId: string;
+    readonly listIds: readonly string[];
+  }): Promise<readonly { contactListId: string; contactId: string }[]> {
+    if (args.listIds.length === 0) return Promise.resolve([]);
+    return this.prisma.contactListMembership.findMany({
+      where: {
+        organizationId: args.organizationId,
+        contactListId: { in: [...args.listIds] },
+      },
+      select: { contactListId: true, contactId: true },
+    });
+  }
+
+  findContactListsByIdsForOrg(args: {
+    readonly organizationId: string;
+    readonly ids: readonly string[];
+  }): Promise<ContactListRow[]> {
+    if (args.ids.length === 0) return Promise.resolve([]);
+    return this.prisma.contactList.findMany({
+      where: {
+        organizationId: args.organizationId,
+        id: { in: [...args.ids] },
+        deletedAt: null,
+      },
+      select: contactListSelect,
+    });
+  }
 }

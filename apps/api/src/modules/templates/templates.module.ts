@@ -15,6 +15,11 @@ import { ContactsModule } from '../contacts/contacts.module';
     TemplateRendererService,
     TemplateVariableService,
   ],
-  exports: [TemplatesService],
+  exports: [
+    TemplatesService,
+    TemplatesRepository,
+    TemplateRendererService,
+    TemplateVariableService,
+  ],
 })
 export class TemplatesModule {}

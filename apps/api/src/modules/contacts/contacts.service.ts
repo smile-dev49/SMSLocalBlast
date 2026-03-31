@@ -33,13 +33,7 @@ export class ContactsService {
     return principal.organizationId;
   }
 
-  private mapContact(row: ContactRow): ContactResponse {
-    const customFields = row.customFieldValues.map((f) => ({
-      fieldKey: f.fieldKey,
-      fieldValue: f.fieldValue,
-      valueType: f.valueType,
-    }));
-
+  mergeFieldsFromContactRow(row: ContactRow): Record<string, string> {
     const mergeFields: Record<string, string> = {};
     if (row.firstName) mergeFields['FirstName'] = row.firstName;
     if (row.lastName) mergeFields['LastName'] = row.lastName;
@@ -47,9 +41,18 @@ export class ContactsService {
     mergeFields['PhoneNumber'] = row.phoneNumber;
     mergeFields['NormalizedPhoneNumber'] = row.normalizedPhoneNumber;
     if (row.email) mergeFields['Email'] = row.email;
-    for (const field of customFields) {
+    for (const field of row.customFieldValues) {
       mergeFields[field.fieldKey] = field.fieldValue;
     }
+    return mergeFields;
+  }
+
+  private mapContact(row: ContactRow): ContactResponse {
+    const customFields = row.customFieldValues.map((f) => ({
+      fieldKey: f.fieldKey,
+      fieldValue: f.fieldValue,
+      valueType: f.valueType,
+    }));
 
     return {
       id: row.id,
@@ -71,7 +74,7 @@ export class ContactsService {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       customFields,
-      mergeFields,
+      mergeFields: this.mergeFieldsFromContactRow(row),
     };
   }
 

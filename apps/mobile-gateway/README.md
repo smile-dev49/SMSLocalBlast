@@ -1,13 +1,41 @@
-# Mobile Gateway (Flutter scaffold)
+# SMS LocalBlast Mobile Gateway
 
-This directory reserves the mobile SMS gateway surface. **No Flutter project is generated yet** per repository policy — only structure and documentation live here.
+Production-oriented Flutter foundation for the device gateway client that integrates with backend gateway endpoints.
 
-## Planned implementation
+## Implemented foundation
 
-1. Run `flutter create .` from this folder when you are ready to generate platform projects.
-2. Adopt the layering described in `docs.md` (`core`, `features`, `data`, `presentation`, platform channels).
-3. Keep domain types imported from `@sms-localblast/types` via a small Dart-facing API or generated contracts (ADR to follow).
+- Riverpod app shell with bootstrap, login, gateway home, activity, settings/diagnostics screens.
+- Typed runtime config via `--dart-define`.
+- Device gateway auth flow with secure token storage.
+- Dio-based backend API client with auth interceptor.
+- Dispatch pull orchestration with:
+  - no-overlap polling loop
+  - local pending jobs
+  - callback outbox retry
+  - transport abstraction hook
+- Platform transport abstraction:
+  - Android-first stub (`AndroidGatewayTransport`)
+  - iOS-limited safe stub (`IosGatewayTransport`) with explicit unsupported signaling
+- Connectivity-triggered polling tick support (without heavy background execution yet).
 
-## Why a gateway app?
+## Config
 
-The gateway bridges carrier/SMS capabilities on-device with the multi-tenant API, queues, and org policies enforced server-side.
+Use `--dart-define`:
+
+- `API_BASE_URL` (default `http://10.0.2.2:3000/api/v1`)
+- `APP_ENV` (`dev|staging|prod`, default `dev`)
+- `DISPATCH_POLL_SECONDS` (default `10`)
+- `DEBUG_LOGGING` (`true|false`, default `true`)
+
+Example:
+
+`flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1 --dart-define=APP_ENV=dev`
+
+## Local persistence split
+
+- Secure: `flutter_secure_storage` for gateway token + device identifier.
+- Non-secure: `shared_preferences` for pending jobs, callback outbox, gateway toggles.
+
+## Next step
+
+Add native Android SMS transport (platform channel + runtime permissions + sent/delivered hooks), then wire these callbacks into `GatewayOrchestrator`.

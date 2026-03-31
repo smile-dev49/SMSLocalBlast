@@ -38,6 +38,16 @@ const PERMISSIONS: readonly PermissionDef[] = [
   { code: 'templates.write', description: 'Create/update organization templates' },
   { code: 'templates.manage', description: 'Archive/delete templates' },
   { code: 'templates.render', description: 'Validate and render template previews' },
+  { code: 'campaigns.read', description: 'Read organization campaigns' },
+  { code: 'campaigns.write', description: 'Create/update/delete organization campaigns' },
+  { code: 'campaigns.manage', description: 'Manage campaign configuration' },
+  { code: 'campaigns.execute', description: 'Schedule, start, pause, and cancel campaigns' },
+  { code: 'campaigns.preview', description: 'Run non-persisted campaign previews' },
+  { code: 'messages.read', description: 'Read organization outbound messages and status events' },
+  { code: 'messages.manage', description: 'Manage outbound message execution' },
+  { code: 'messages.retry', description: 'Retry outbound messages' },
+  { code: 'messages.cancel', description: 'Cancel outbound messages' },
+  { code: 'operations.read', description: 'Read operational execution visibility endpoints' },
 ];
 
 const ROLES: readonly RoleDef[] = [
@@ -81,6 +91,16 @@ const ROLES: readonly RoleDef[] = [
       'templates.write',
       'templates.manage',
       'templates.render',
+      'campaigns.read',
+      'campaigns.write',
+      'campaigns.manage',
+      'campaigns.execute',
+      'campaigns.preview',
+      'messages.read',
+      'messages.manage',
+      'messages.retry',
+      'messages.cancel',
+      'operations.read',
     ],
   },
   {
@@ -97,6 +117,9 @@ const ROLES: readonly RoleDef[] = [
       'contact-lists.read',
       'templates.read',
       'templates.render',
+      'campaigns.read',
+      'campaigns.preview',
+      'messages.read',
     ],
   },
 ];

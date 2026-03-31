@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,6 +17,8 @@ import '../../features/gateway/domain/gateway_state.dart';
 import '../../features/gateway/presentation/gateway_controller.dart';
 import '../../services/backend_api/device_gateway_api.dart';
 import '../../services/background/gateway_orchestrator.dart';
+import '../../services/platform_channels/android_gateway_transport.dart';
+import '../../services/platform_channels/ios_gateway_transport.dart';
 
 final appConfigProvider = Provider<AppConfig>((_) => AppConfig.fromEnv());
 
@@ -54,10 +58,14 @@ final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
 });
 
 final orchestratorProvider = Provider<GatewayOrchestrator>((ref) {
+  final transport = Platform.isIOS
+      ? IosGatewayTransport()
+      : AndroidGatewayTransport();
   return GatewayOrchestrator(
     api: ref.watch(gatewayApiProvider),
     localStore: ref.watch(localStoreProvider),
     pollSeconds: ref.watch(appConfigProvider).dispatchPollIntervalSeconds,
+    transport: transport,
   );
 });
 

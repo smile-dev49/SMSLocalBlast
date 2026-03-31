@@ -2,17 +2,25 @@ import '../../core/models/dispatch_job.dart';
 import 'gateway_transport.dart';
 
 class IosGatewayTransport implements GatewayTransport {
-  @override
-  Future<Map<String, dynamic>> checkCapabilities() async {
-    return const {
-      'smsSend': false,
-      'deliveryReports': false,
-      'note': 'iOS automation is intentionally limited; no silent SMS transport implemented.',
-    };
-  }
+  static const TransportCapabilities _capabilities = TransportCapabilities(
+    platform: 'ios',
+    smsSupported: false,
+    deliveryReportsSupported: false,
+    permissionGranted: false,
+    note: 'iOS automated SMS gateway transport is intentionally unsupported.',
+  );
 
   @override
-  Future<bool> requestPermissions() async => true;
+  Stream<TransportEvent> get events => const Stream<TransportEvent>.empty();
+
+  @override
+  TransportEvent? get lastEvent => null;
+
+  @override
+  Future<TransportCapabilities> checkCapabilities() async => _capabilities;
+
+  @override
+  Future<bool> requestPermissions() async => false;
 
   @override
   Future<TransportResult> sendMessage(DispatchJob job) async {

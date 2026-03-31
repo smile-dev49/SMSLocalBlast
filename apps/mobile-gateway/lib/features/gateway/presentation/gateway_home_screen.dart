@@ -29,6 +29,20 @@ class GatewayHomeScreen extends ConsumerWidget {
             subtitle: Text(gateway.lastPollAt?.toIso8601String() ?? 'Never'),
           ),
           ListTile(
+            title: const Text('SMS Permission'),
+            trailing: Text(gateway.permissionGranted ? 'Granted' : 'Not granted'),
+          ),
+          ListTile(
+            title: const Text('Transport Capability'),
+            subtitle: Text(gateway.capabilities?.note ?? 'Unknown'),
+          ),
+          ListTile(
+            title: const Text('Last Transport Event'),
+            subtitle: Text(gateway.lastTransportEvent == null
+                ? 'None'
+                : '${gateway.lastTransportEvent!.type} (${gateway.lastTransportEvent!.messageId})'),
+          ),
+          ListTile(
             title: const Text('Processed Jobs'),
             trailing: Text('${gateway.processedJobs}'),
           ),

@@ -1,6 +1,6 @@
 # SMS LocalBlast Mobile Gateway
 
-Production-oriented Flutter foundation for the device gateway client that integrates with backend gateway endpoints.
+Production-oriented Flutter foundation for the device gateway client that integrates with backend gateway endpoints, now with Android native SMS transport bridge.
 
 ## Implemented foundation
 
@@ -14,9 +14,54 @@ Production-oriented Flutter foundation for the device gateway client that integr
   - callback outbox retry
   - transport abstraction hook
 - Platform transport abstraction:
-  - Android-first stub (`AndroidGatewayTransport`)
+  - Android native bridge (`AndroidGatewayTransport`) via MethodChannel + EventChannel
   - iOS-limited safe stub (`IosGatewayTransport`) with explicit unsupported signaling
 - Connectivity-triggered polling tick support (without heavy background execution yet).
+
+## Android transport integration
+
+### Channel contract
+
+- Method channel: `sms_localblast/gateway_transport/methods`
+  - `checkCapabilities`
+  - `requestPermissions`
+  - `sendMessage`
+- Event channel: `sms_localblast/gateway_transport/events`
+  - emits `accepted`, `sent`, `delivered`, `failed` events with `messageId` and `correlationId`
+
+### Native Android components
+
+- `GatewayMethodChannelHandler`: method + event wiring
+- `GatewayPermissionHelper`: runtime `SEND_SMS` permission flow
+- `SmsTransportManager`: native SMS send facade and sent/delivered broadcast handling
+- `SmsSendResultEmitter`: event sink emitter for Flutter
+
+### Permissions
+
+- Added Android permission: `android.permission.SEND_SMS`
+- Permission state is visible in Diagnostics and Gateway Home.
+- If denied, transport returns clean failure (`PERMISSION_DENIED`) and no sent report is generated.
+
+### Correlation strategy
+
+- Each send creates a `correlationId` and embeds both `messageId` and `correlationId` into sent/delivered `PendingIntent` extras.
+- Broadcast callbacks emit those IDs back to Flutter over EventChannel.
+- Flutter orchestrator tracks in-flight jobs by `messageId` and enqueues backend callbacks:
+  - send success -> `report-sent`
+  - delivery success -> `report-delivered`
+  - failures -> `report-failed`
+
+### Real-device requirement
+
+- Emulator support for telephony/SMS callbacks is limited and not reliable.
+- Use a real Android device + SIM/carrier for validating sent/delivered paths.
+- Delivery reports are carrier dependent and may arrive delayed or not at all.
+
+## iOS limitation (intentional)
+
+- iOS automated SMS gateway sending is not implemented.
+- iOS transport returns explicit unsupported failure (`TRANSPORT_UNSUPPORTED`) and diagnostics reflect this.
+- No unofficial or policy-risk workaround is used in this step.
 
 ## Config
 
@@ -38,4 +83,9 @@ Example:
 
 ## Next step
 
-Add native Android SMS transport (platform channel + runtime permissions + sent/delivered hooks), then wire these callbacks into `GatewayOrchestrator`.
+Add production hardening around Android execution:
+
+- retries for transport-level correlation failures across app restarts
+- dual-SIM routing strategy
+- MMS channel support and attachment handoff
+- background execution policy integration.

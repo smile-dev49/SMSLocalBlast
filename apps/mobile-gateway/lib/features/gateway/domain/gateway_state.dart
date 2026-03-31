@@ -1,3 +1,5 @@
+import '../../../services/platform_channels/gateway_transport.dart';
+
 class GatewayState {
   const GatewayState({
     this.running = false,
@@ -6,6 +8,9 @@ class GatewayState {
     this.processedJobs = 0,
     this.sentReports = 0,
     this.failedReports = 0,
+    this.capabilities,
+    this.lastTransportEvent,
+    this.permissionGranted = false,
   });
 
   final bool running;
@@ -14,6 +19,9 @@ class GatewayState {
   final int processedJobs;
   final int sentReports;
   final int failedReports;
+  final TransportCapabilities? capabilities;
+  final TransportEvent? lastTransportEvent;
+  final bool permissionGranted;
 
   GatewayState copyWith({
     bool? running,
@@ -22,6 +30,9 @@ class GatewayState {
     int? processedJobs,
     int? sentReports,
     int? failedReports,
+    TransportCapabilities? capabilities,
+    TransportEvent? lastTransportEvent,
+    bool? permissionGranted,
   }) {
     return GatewayState(
       running: running ?? this.running,
@@ -30,6 +41,9 @@ class GatewayState {
       processedJobs: processedJobs ?? this.processedJobs,
       sentReports: sentReports ?? this.sentReports,
       failedReports: failedReports ?? this.failedReports,
+      capabilities: capabilities ?? this.capabilities,
+      lastTransportEvent: lastTransportEvent ?? this.lastTransportEvent,
+      permissionGranted: permissionGranted ?? this.permissionGranted,
     );
   }
 }

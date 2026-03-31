@@ -13,6 +13,7 @@ import 'package:sms_localblast_mobile_gateway/features/gateway/presentation/gate
 import 'package:sms_localblast_mobile_gateway/features/gateway/presentation/gateway_home_screen.dart';
 import 'package:sms_localblast_mobile_gateway/services/backend_api/device_gateway_api.dart';
 import 'package:sms_localblast_mobile_gateway/services/background/gateway_orchestrator.dart';
+import 'package:sms_localblast_mobile_gateway/services/platform_channels/gateway_transport.dart';
 import 'package:sms_localblast_mobile_gateway/shared/providers/app_providers.dart';
 
 class _FakeApi implements GatewayApiClient {
@@ -38,6 +39,32 @@ class _FakeStore implements GatewaySecureStore {
   Future<void> saveSession({required String token, required String deviceIdentifier}) async {}
 }
 
+class _FakeTransport implements GatewayTransport {
+  @override
+  Stream<TransportEvent> get events => const Stream<TransportEvent>.empty();
+
+  @override
+  TransportEvent? get lastEvent => null;
+
+  @override
+  Future<TransportCapabilities> checkCapabilities() async {
+    return const TransportCapabilities(
+      platform: 'android',
+      smsSupported: true,
+      deliveryReportsSupported: true,
+      permissionGranted: true,
+      note: 'ok',
+    );
+  }
+
+  @override
+  Future<bool> requestPermissions() async => true;
+
+  @override
+  Future<TransportResult> sendMessage(DispatchJob job) async =>
+      const TransportResult(type: 'report-sent');
+}
+
 void main() {
   testWidgets('renders gateway counters', (tester) async {
     SharedPreferences.setMockInitialValues({});
@@ -47,6 +74,7 @@ void main() {
         api: _FakeApi(),
         localStore: LocalStore(prefs),
         pollSeconds: 60,
+        transport: _FakeTransport(),
       ),
     );
     controller.state = const GatewayState(running: true, processedJobs: 3, pendingCallbacks: 1);

@@ -13,6 +13,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(appConfigProvider);
+    final gateway = ref.watch(gatewayControllerProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings & Diagnostics')),
       body: FutureBuilder<_Diag>(
@@ -26,7 +27,35 @@ class SettingsScreen extends ConsumerWidget {
               ListTile(title: const Text('Environment'), subtitle: Text(config.environment)),
               ListTile(title: const Text('Platform'), subtitle: Text(diag?.platform ?? '-')),
               ListTile(title: const Text('App Version'), subtitle: Text(diag?.version ?? '-')),
+              ListTile(
+                title: const Text('SMS Permission'),
+                subtitle: Text(gateway.permissionGranted ? 'Granted' : 'Not granted'),
+              ),
+              ListTile(
+                title: const Text('Transport'),
+                subtitle: Text(gateway.capabilities?.note ?? 'Not checked'),
+              ),
+              ListTile(
+                title: const Text('Last Transport Event'),
+                subtitle: Text(
+                  gateway.lastTransportEvent == null
+                      ? 'None'
+                      : '${gateway.lastTransportEvent!.type} (${gateway.lastTransportEvent!.messageId})',
+                ),
+              ),
               const SizedBox(height: 12),
+              FilledButton(
+                onPressed: () =>
+                    ref.read(gatewayControllerProvider.notifier).requestTransportPermissions(),
+                child: const Text('Request SMS Permission'),
+              ),
+              const SizedBox(height: 8),
+              FilledButton(
+                onPressed: () =>
+                    ref.read(gatewayControllerProvider.notifier).refreshTransportDiagnostics(),
+                child: const Text('Check Transport Capability'),
+              ),
+              const SizedBox(height: 8),
               FilledButton(
                 onPressed: () => ref.read(gatewayControllerProvider.notifier).testPull(),
                 child: const Text('Test Pull'),

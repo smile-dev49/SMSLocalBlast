@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -8,22 +7,23 @@ import '../../core/models/callback_report.dart';
 import '../../core/models/dispatch_job.dart';
 import '../../core/storage/local_store.dart';
 import '../backend_api/device_gateway_api.dart';
-import '../platform_channels/android_gateway_transport.dart';
 import '../platform_channels/gateway_transport.dart';
-import '../platform_channels/ios_gateway_transport.dart';
 
 class GatewayOrchestrator {
   GatewayOrchestrator({
     required GatewayApiClient api,
     required LocalStore localStore,
     required int pollSeconds,
+    required GatewayTransport transport,
   })  : _api = api,
         _localStore = localStore,
-        _pollSeconds = pollSeconds;
+        _pollSeconds = pollSeconds,
+        _transport = transport;
 
   final GatewayApiClient _api;
   final LocalStore _localStore;
   final int _pollSeconds;
+  final GatewayTransport _transport;
   bool _running = false;
   bool _pullInFlight = false;
   DateTime? _lastPollAt;
@@ -32,9 +32,10 @@ class GatewayOrchestrator {
   int _failedReports = 0;
   Timer? _timer;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
-
-  GatewayTransport get _transport =>
-      Platform.isIOS ? IosGatewayTransport() : AndroidGatewayTransport();
+  StreamSubscription<TransportEvent>? _transportEventsSub;
+  final Map<String, DispatchJob> _inFlightDispatches = <String, DispatchJob>{};
+  TransportCapabilities? _capabilities;
+  TransportEvent? _lastTransportEvent;
 
   bool get isRunning => _running;
   DateTime? get lastPollAt => _lastPollAt;
@@ -42,10 +43,13 @@ class GatewayOrchestrator {
   int get sentReports => _sentReports;
   int get failedReports => _failedReports;
   int get pendingCallbacks => _localStore.readCallbackOutbox().length;
+  TransportCapabilities? get capabilities => _capabilities;
+  TransportEvent? get lastTransportEvent => _lastTransportEvent;
 
   void start() {
     if (_running) return;
     _running = true;
+    _transportEventsSub ??= _transport.events.listen(_onTransportEvent);
     _timer = Timer.periodic(Duration(seconds: _pollSeconds), (_) => _tick());
     _connectivitySub = Connectivity().onConnectivityChanged.listen((_) => _tick());
     _tick();
@@ -57,6 +61,8 @@ class GatewayOrchestrator {
     _timer = null;
     await _connectivitySub?.cancel();
     _connectivitySub = null;
+    await _transportEventsSub?.cancel();
+    _transportEventsSub = null;
   }
 
   Future<void> _tick() async {
@@ -72,6 +78,7 @@ class GatewayOrchestrator {
       await _localStore.savePendingJobs(pending);
 
       for (final job in jobs) {
+        _inFlightDispatches[job.messageId] = job;
         await _api.sendReport(
           CallbackReport(
             messageId: job.messageId,
@@ -91,6 +98,9 @@ class GatewayOrchestrator {
         );
         await _enqueueAndFlushReport(report);
         _processed += 1;
+        if (result.type == 'report-failed') {
+          _inFlightDispatches.remove(job.messageId);
+        }
       }
       await _localStore.savePendingJobs(const []);
     } catch (e) {
@@ -123,5 +133,32 @@ class GatewayOrchestrator {
       }
     }
     await _localStore.saveCallbackOutbox(failed);
+  }
+
+  Future<bool> requestTransportPermissions() => _transport.requestPermissions();
+
+  Future<TransportCapabilities> refreshCapabilities() async {
+    final current = await _transport.checkCapabilities();
+    _capabilities = current;
+    return current;
+  }
+
+  void _onTransportEvent(TransportEvent event) {
+    _lastTransportEvent = event;
+    if (event.type != 'delivered') {
+      return;
+    }
+    final job = _inFlightDispatches[event.messageId];
+    if (job == null) {
+      return;
+    }
+    _enqueueAndFlushReport(
+      CallbackReport(
+        messageId: job.messageId,
+        type: 'report-delivered',
+        idempotencyKey: 'report-delivered-${job.idempotencyKey}',
+      ),
+    );
+    _inFlightDispatches.remove(job.messageId);
   }
 }

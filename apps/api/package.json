@@ -12,7 +12,7 @@
     "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "test": "jest",
     "test:e2e": "jest --config ./jest-e2e.config.cjs",
-    "seed": "ts-node src/scripts/seed-auth-rbac.ts",
+    "seed": "ts-node src/scripts/seed-auth-rbac.ts && ts-node src/scripts/seed-billing.ts",
     "test:all": "pnpm test && pnpm test:e2e"
   },
   "dependencies": {
@@ -39,6 +39,7 @@
     "pino-pretty": "^13.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "stripe": "^21.0.1",
     "uuid": "^11.0.5",
     "zod": "^3.24.1"
   },

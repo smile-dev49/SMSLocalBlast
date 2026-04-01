@@ -130,6 +130,32 @@ enum MessageDirection {
   INBOUND
 }
 
+enum BillingProvider {
+  STRIPE
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  UNPAID
+  CANCELLED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  PAUSED
+}
+
+enum PlanInterval {
+  MONTH
+  YEAR
+}
+
+enum EntitlementValueType {
+  BOOLEAN
+  NUMBER
+  STRING
+}
+
 enum AuditAction {
   AUTH_REGISTER
   AUTH_LOGIN
@@ -183,6 +209,14 @@ enum AuditAction {
   MESSAGE_FAILED_REPORTED
   CAMPAIGN_FINALIZED
   OPERATIONS_VIEWED
+  BILLING_CHECKOUT_SESSION_CREATED
+  BILLING_PORTAL_SESSION_CREATED
+  BILLING_SUBSCRIPTION_ACTIVATED
+  BILLING_SUBSCRIPTION_UPDATED
+  BILLING_SUBSCRIPTION_CANCELLED
+  BILLING_PAYMENT_FAILED
+  BILLING_QUOTA_LIMIT_REACHED
+  BILLING_ENTITLEMENT_DENIED
 }
 
 model Organization {
@@ -208,6 +242,10 @@ model Organization {
   outboundMessages      OutboundMessage[] @relation("OrganizationOutboundMessages")
   messageStatusEvents   MessageStatusEvent[] @relation("OrganizationMessageStatusEvents")
   gatewayEventReceipts  MessageGatewayEventReceipt[] @relation("OrganizationGatewayEventReceipts")
+  billingCustomers      BillingCustomer[]
+  subscriptions         OrganizationSubscription[]
+  usageCounters         UsageCounter[]
+  billingEventLogs      BillingEventLog[]
   auditLogs   AuditLog[]
 }
 
@@ -680,4 +718,112 @@ model AuditLog {
 
   @@index([organizationId, createdAt])
   @@index([actorUserId, createdAt])
+}
+
+model BillingCustomer {
+  id                 String          @id @default(cuid())
+  organizationId     String
+  provider           BillingProvider
+  providerCustomerId String
+  email              String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  organization       Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptions      OrganizationSubscription[]
+
+  @@unique([provider, providerCustomerId])
+  @@unique([organizationId, provider])
+}
+
+model BillingPlan {
+  id                String             @id @default(cuid())
+  code              String             @unique
+  name              String
+  description       String?
+  provider          BillingProvider
+  providerProductId String?
+  providerPriceId   String?
+  interval          PlanInterval?
+  isActive          Boolean            @default(true)
+  sortOrder         Int                @default(0)
+  metadata          Json?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  entitlements      BillingEntitlement[]
+  subscriptions     OrganizationSubscription[]
+}
+
+model BillingEntitlement {
+  id           String               @id @default(cuid())
+  planId       String
+  code         String
+  valueType    EntitlementValueType
+  booleanValue Boolean?
+  numberValue  Int?
+  stringValue  String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  plan         BillingPlan          @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, code])
+}
+
+model OrganizationSubscription {
+  id                     String             @id @default(cuid())
+  organizationId         String
+  billingCustomerId      String?
+  billingPlanId          String?
+  provider               BillingProvider
+  providerSubscriptionId String?
+  status                 SubscriptionStatus @default(INCOMPLETE)
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean            @default(false)
+  cancelledAt            DateTime?
+  trialEndsAt            DateTime?
+  lastWebhookAt          DateTime?
+  metadata               Json?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  billingCustomer        BillingCustomer?   @relation(fields: [billingCustomerId], references: [id], onDelete: SetNull)
+  billingPlan            BillingPlan?       @relation(fields: [billingPlanId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, provider])
+  @@unique([provider, providerSubscriptionId])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model UsageCounter {
+  id             String       @id @default(cuid())
+  organizationId String
+  code           String
+  periodKey      String       @default("")
+  value          Int          @default(0)
+  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, code, periodKey])
+}
+
+model BillingEventLog {
+  id              String          @id @default(cuid())
+  organizationId  String?
+  provider        BillingProvider
+  eventType       String
+  providerEventId String
+  payload         Json
+  processedAt     DateTime?
+  createdAt       DateTime        @default(now())
+
+  organization    Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, providerEventId])
 }

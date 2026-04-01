@@ -205,4 +205,24 @@ describe('Messages + Device Gateway (e2e)', () => {
       .send({ idempotencyKey: 'dlv-1' });
     expect(duplicateDelivered.status).toBe(201);
   });
+
+  it('operations endpoints expose queue and processing visibility', async () => {
+    const owner = await registerOwner();
+    const summary = await request(app.getHttpServer())
+      .get('/api/v1/operations/queues/summary')
+      .set('Authorization', `Bearer ${owner.accessToken}`);
+    expect(summary.status).toBe(200);
+
+    const lag = await request(app.getHttpServer())
+      .get('/api/v1/operations/queues/lag')
+      .set('Authorization', `Bearer ${owner.accessToken}`);
+    expect(lag.status).toBe(200);
+    expect(typeof lag.body.queue).toBe('string');
+
+    const processing = await request(app.getHttpServer())
+      .get('/api/v1/operations/campaigns/processing?limit=5')
+      .set('Authorization', `Bearer ${owner.accessToken}`);
+    expect(processing.status).toBe(200);
+    expect(Array.isArray(processing.body)).toBe(true);
+  });
 });

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { AuditAction, MessageStatus, Prisma } from '@prisma/client';
 import { getRequestContext } from '../../infrastructure/request-context/request-context.storage';
+import { AppHttpException } from '../../common/exceptions/app-http.exception';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { AuditLogService } from '../audit-logs/audit-log.service';
 import { MessageEventsService } from './message-events.service';
@@ -11,6 +12,7 @@ import {
 } from './exceptions/messages.exceptions';
 import { MessageDeviceSelectionService } from './message-device-selection.service';
 import { MessageQueueService } from './message-queue.service';
+import { MessageRetryPolicyService } from './message-retry-policy.service';
 import { MessageStateService } from './message-state.service';
 import { MessagesRepository } from './messages.repository';
 import type { DeviceGatewayPrincipal, MessageOperationResponse } from './types/message.types';
@@ -20,6 +22,9 @@ import type {
   GatewayReportFailedBody,
   GatewayReportSentBody,
 } from './dto/device-gateway.dto';
+import { BillingAccessService } from '../billing/billing-access.service';
+import { QuotaEnforcementService } from '../billing/quota-enforcement.service';
+import { UsageCountersService } from '../billing/usage-counters.service';
 
 @Injectable()
 export class MessageExecutionService {
@@ -29,8 +34,12 @@ export class MessageExecutionService {
     private readonly state: MessageStateService,
     private readonly events: MessageEventsService,
     private readonly queue: MessageQueueService,
+    private readonly retryPolicy: MessageRetryPolicyService,
     private readonly selectDevice: MessageDeviceSelectionService,
     private readonly audit: AuditLogService,
+    private readonly quota: QuotaEnforcementService,
+    private readonly usage: UsageCountersService,
+    private readonly billingAccess: BillingAccessService,
   ) {}
 
   private async emitAudit(action: AuditAction, metadata: Record<string, unknown>): Promise<void> {
@@ -43,12 +52,6 @@ export class MessageExecutionService {
       ...(ctx?.ip ? { ipAddress: ctx.ip } : {}),
       ...(ctx?.userAgent ? { userAgent: ctx.userAgent } : {}),
     });
-  }
-
-  private nextRetryAt(retryCount: number): Date {
-    const baseSeconds = 30;
-    const seconds = baseSeconds * Math.pow(2, Math.max(0, retryCount - 1));
-    return new Date(Date.now() + seconds * 1000);
   }
 
   async prepareOutboundMessagesForCampaign(
@@ -87,8 +90,25 @@ export class MessageExecutionService {
 
     let created = 0;
     let queued = 0;
+    const monthKey = this.usage.monthKey();
+    const sentCounter = await this.prisma.usageCounter.findUnique({
+      where: {
+        organizationId_code_periodKey: {
+          organizationId,
+          code: 'messages.sent.month',
+          periodKey: monthKey,
+        },
+      },
+      select: { value: true },
+    });
+    let projectedSent = sentCounter?.value ?? 0;
     for (const recipient of recipients) {
       if (existingRecipientIds.has(recipient.id)) continue;
+      await this.quota.assertBelowLimit({
+        organizationId,
+        entitlementCode: 'messages.monthly.max',
+        currentValue: projectedSent,
+      });
       const renderedBody =
         recipient.renderedBody ?? (typeof recipient.mergeFields === 'object' ? '' : '');
       if (!renderedBody) continue;
@@ -109,6 +129,7 @@ export class MessageExecutionService {
         select: { id: true, campaignId: true, campaignRecipientId: true, deviceId: true },
       });
       created += 1;
+      projectedSent += 1;
       await this.queue.enqueueDispatch({
         messageId: row.id,
         organizationId,
@@ -125,6 +146,14 @@ export class MessageExecutionService {
       queued,
     });
     await this.repo.refreshCampaignProgressFromMessages(campaignId);
+    if (created > 0) {
+      await this.quota.incrementUsageCounter(
+        organizationId,
+        'messages.sent.month',
+        monthKey,
+        created,
+      );
+    }
     return { created, queued };
   }
 
@@ -173,7 +202,7 @@ export class MessageExecutionService {
     if (!['FAILED', 'CANCELLED'].includes(msg.status)) {
       throw new MessageInvalidStateException('Only failed/cancelled messages are retryable');
     }
-    const nextRetry = this.nextRetryAt(msg.retryCount + 1);
+    const nextRetry = this.retryPolicy.nextRetryAt(msg.retryCount + 1);
     await this.repo.updateMessage(messageId, {
       status: 'READY',
       retryCount: msg.retryCount + 1,
@@ -228,10 +257,34 @@ export class MessageExecutionService {
     const msg = await this.repo.getMessageById(messageId);
     if (!msg) return;
     if (msg.status !== 'QUEUED') return;
+    try {
+      await this.billingAccess.assertOrganizationMayUseOutboundMessaging(msg.organizationId);
+    } catch (e: unknown) {
+      if (e instanceof AppHttpException) {
+        await this.transitionMessageStatus({
+          messageId,
+          organizationId: msg.organizationId,
+          toStatus: 'FAILED',
+          reason: 'billing.subscription_inactive',
+        });
+        await this.repo.updateMessage(messageId, {
+          failureCode: 'BILLING_INACTIVE',
+          failureReason: 'Subscription cannot send outbound messages',
+        });
+        return;
+      }
+      throw e;
+    }
     const selection = await this.selectDevice.selectEligibleDevice(msg.organizationId);
     if (!selection.deviceId) {
       const retryCount = msg.retryCount + 1;
-      if (retryCount > msg.maxRetries) {
+      if (
+        !this.retryPolicy.shouldRetry({
+          category: 'NO_ELIGIBLE_DEVICE',
+          retryCount: msg.retryCount,
+          maxRetries: msg.maxRetries,
+        })
+      ) {
         await this.transitionMessageStatus({
           messageId,
           organizationId: msg.organizationId,
@@ -243,12 +296,11 @@ export class MessageExecutionService {
           failureReason: selection.reason ?? 'No eligible device',
         });
       } else {
-        await this.queue.scheduleRetry({
+        await this.queue.scheduleRetryWithPolicy({
           messageId,
           organizationId: msg.organizationId,
           reason: selection.reason ?? 'NO_ELIGIBLE_DEVICE',
           retryCount,
-          nextRetryAt: this.nextRetryAt(retryCount),
         });
       }
       return;
@@ -491,9 +543,16 @@ export class MessageExecutionService {
     const retryable =
       body.retryable ??
       !['INVALID_RECIPIENT', 'BLOCKED_CONTACT', 'OPTED_OUT_CONTACT'].includes(body.failureCode);
-    if (retryable && msg.retryCount < msg.maxRetries) {
+    if (
+      retryable &&
+      this.retryPolicy.shouldRetry({
+        category: 'TRANSPORT_TEMPORARY',
+        retryCount: msg.retryCount,
+        maxRetries: msg.maxRetries,
+      })
+    ) {
       const retryCount = msg.retryCount + 1;
-      const nextRetryAt = this.nextRetryAt(retryCount);
+      const nextRetryAt = this.retryPolicy.nextRetryAt(retryCount);
       await this.repo.updateMessage(messageId, {
         status: 'FAILED',
         failureCode: body.failureCode,

@@ -6,6 +6,7 @@ import { getRequestContext } from '../../infrastructure/request-context/request-
 import { AuditLogService } from '../audit-logs/audit-log.service';
 import { MembershipInactiveException } from '../auth/exceptions/auth.exceptions';
 import { ContactsService } from '../contacts/contacts.service';
+import { QuotaEnforcementService } from '../billing/quota-enforcement.service';
 import type { CreateTemplateBody } from './dto/create-template.dto';
 import type { ListTemplatesQuery } from './dto/list-templates.query.dto';
 import type {
@@ -35,6 +36,7 @@ export class TemplatesService {
     private readonly variable: TemplateVariableService,
     private readonly contacts: ContactsService,
     private readonly audit: AuditLogService,
+    private readonly quota: QuotaEnforcementService,
   ) {}
 
   private orgId(principal: AuthPrincipal): string {
@@ -95,8 +97,15 @@ export class TemplatesService {
     principal: AuthPrincipal,
     body: CreateTemplateBody,
   ): Promise<TemplateResponse> {
+    const organizationId = this.orgId(principal);
+    const templateCount = await this.repo.count({ organizationId, deletedAt: null });
+    await this.quota.assertBelowLimit({
+      organizationId,
+      entitlementCode: 'templates.max',
+      currentValue: templateCount,
+    });
     const row = await this.repo.create({
-      organizationId: this.orgId(principal),
+      organizationId,
       createdByUserId: principal.userId,
       name: body.name.trim(),
       description: body.description?.trim() ?? null,

@@ -7,6 +7,7 @@ import { getRequestContext } from '../../infrastructure/request-context/request-
 import { AuditLogService } from '../audit-logs/audit-log.service';
 import { MembershipInactiveException } from '../auth/exceptions/auth.exceptions';
 import { ContactsNormalizationService } from './contacts-normalization.service';
+import { QuotaEnforcementService } from '../billing/quota-enforcement.service';
 import { ContactsRepository, type ContactRow } from './contacts.repository';
 import type { CreateContactBody } from './dto/create-contact.dto';
 import type { ListContactsQuery } from './dto/list-contacts.query.dto';
@@ -26,6 +27,7 @@ export class ContactsService {
     private readonly repo: ContactsRepository,
     private readonly normalization: ContactsNormalizationService,
     private readonly audit: AuditLogService,
+    private readonly quota: QuotaEnforcementService,
   ) {}
 
   private orgId(principal: AuthPrincipal): string {
@@ -110,6 +112,14 @@ export class ContactsService {
 
   async createContact(principal: AuthPrincipal, body: CreateContactBody): Promise<ContactResponse> {
     const organizationId = this.orgId(principal);
+    const contactsCount = await this.prisma.contact.count({
+      where: { organizationId, deletedAt: null },
+    });
+    await this.quota.assertBelowLimit({
+      organizationId,
+      entitlementCode: 'contacts.max',
+      currentValue: contactsCount,
+    });
     const normalized = this.normalization.normalizeContact({
       ...(body.firstName !== undefined ? { firstName: body.firstName } : {}),
       ...(body.lastName !== undefined ? { lastName: body.lastName } : {}),

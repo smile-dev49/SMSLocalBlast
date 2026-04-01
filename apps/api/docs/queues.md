@@ -1,29 +1,34 @@
 # Queues (BullMQ)
 
-## Roles
+## Queue topology
 
-- **API process:** enqueue jobs via `QueueProducerService` (or inject named `getQueueToken` queues later).
-- **Worker process (future):** separate Node entry that imports the same queue names and registers **processors** using the worker registry pattern in `queue.worker-registry.ts`.
+- `messages`: dispatch/retry/recovery/dead-letter jobs
+- `schedules`: reserved
+- `webhooks`: reserved
+- `audit`: reserved
 
-## Configuration
+## Implemented message jobs
 
-- Connection URL matches **`redis.url`** from app config.
-- Key prefix: **`queue.prefix`** (isolates keys per environment).
+- `messages.dispatch` � per-message execution worker
+- `messages.retry-due` � periodic due-retry scanner
+- `messages.recovery-sweep` � periodic stuck/callback/campaign consistency sweep
+- `messages.dead-letter` � dead-letter marker stream
 
-## Queue names
+## Production controls
 
-Constants in `infrastructure/queue/queue.constants.ts`:
+Environment knobs:
 
-- `messages`
-- `schedules`
-- `webhooks`
-- `audit`
+- `MESSAGE_DISPATCH_WORKER_CONCURRENCY`
+- `MESSAGE_RETRY_WORKER_CONCURRENCY`
+- `MESSAGE_MAX_RETRIES_DEFAULT`
+- `MESSAGE_RETRY_BASE_DELAY_SECONDS`
+- `MESSAGE_RETRY_MAX_DELAY_SECONDS`
+- `MESSAGE_DISPATCH_STUCK_THRESHOLD_SECONDS`
+- `MESSAGE_CALLBACK_TIMEOUT_SECONDS`
+- `MESSAGE_RECOVERY_SWEEP_SECONDS`
+- `MESSAGE_RETRY_BATCH_SIZE`
+- `MESSAGE_DEAD_LETTER_THRESHOLD`
 
-Stub job names (e.g. `*.placeholder`) exist only to prove wiring; replace with real job types when implementing workers.
+## Disable mode
 
-## Disabling queues
-
-Set **`QUEUES_ENABLED=false`** so `AppModule` does not import `QueueInfrastructureModule`. Use this for:
-
-- Unit/e2e tests that must not open Bull connections.
-- Environments where workers run in a different deployment and the API never enqueues.
+`QUEUES_ENABLED=false` keeps queue infrastructure out of the app module for isolated tests/local utility runs.

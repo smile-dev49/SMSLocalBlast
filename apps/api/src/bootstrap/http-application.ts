@@ -5,7 +5,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 // Compression is CommonJS; default ESM interop breaks under ts-jest.
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- CJS default export
 import compression = require('compression');
-import { json, urlencoded } from 'express';
+import { json, raw, urlencoded } from 'express';
 import helmet from 'helmet';
 
 /**
@@ -21,6 +21,7 @@ export function configureHttpApplication(app: NestExpressApplication, config: Co
     .set('trust proxy', trustProxy ? 1 : false);
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(compression());
+  app.use('/api/v1/billing/webhooks/stripe', raw({ type: 'application/json' }));
   app.use(json({ limit: bodyLimit }));
   app.use(urlencoded({ extended: true, limit: bodyLimit }));
 

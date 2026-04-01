@@ -12,6 +12,7 @@ import type {
   ImportPreviewResponse,
 } from './types/contact.types';
 import { ContactsNormalizationService } from './contacts-normalization.service';
+import { QuotaEnforcementService } from '../billing/quota-enforcement.service';
 
 interface PreparedRow {
   readonly rowIndex: number;
@@ -30,6 +31,7 @@ export class ContactsImportService {
     private readonly prisma: PrismaService,
     private readonly normalization: ContactsNormalizationService,
     private readonly audit: AuditLogService,
+    private readonly quota: QuotaEnforcementService,
   ) {}
 
   private orgId(principal: AuthPrincipal): string {
@@ -182,7 +184,16 @@ export class ContactsImportService {
     body: ImportContactsBody,
   ): Promise<ImportConfirmResponse> {
     const organizationId = this.orgId(principal);
+    await this.quota.assertFeatureEnabled(organizationId, 'imports.enabled');
     const preview = await this.previewImport(principal, body);
+    const contactsCount = await this.prisma.contact.count({
+      where: { organizationId, deletedAt: null },
+    });
+    await this.quota.assertBelowLimit({
+      organizationId,
+      entitlementCode: 'contacts.max',
+      currentValue: contactsCount + preview.validRows,
+    });
 
     const toProcess = preview.normalizedSampleRows;
     const existing = await this.prisma.contact.findMany({

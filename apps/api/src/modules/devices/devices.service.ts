@@ -22,6 +22,7 @@ import {
 } from './devices.repository';
 import { AuditLogService } from '../audit-logs/audit-log.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { QuotaEnforcementService } from '../billing/quota-enforcement.service';
 import { createPaginatedResponse } from '../../common/utils/pagination';
 import { getRequestContext } from '../../infrastructure/request-context/request-context.storage';
 import {
@@ -36,6 +37,7 @@ export class DevicesService {
     private readonly repo: DevicesRepository,
     private readonly health: DevicesHealthService,
     private readonly audit: AuditLogService,
+    private readonly quota: QuotaEnforcementService,
   ) {}
 
   private requireOrganizationId(principal: AuthPrincipal): string {
@@ -186,6 +188,14 @@ export class DevicesService {
     const organizationId = this.requireOrganizationId(principal);
     const createdByUserId = principal.userId;
     const now = new Date();
+    const activeCount = await this.prisma.device.count({
+      where: { organizationId, deletedAt: null, isActive: true },
+    });
+    await this.quota.assertBelowLimit({
+      organizationId,
+      entitlementCode: 'devices.max',
+      currentValue: activeCount,
+    });
 
     const row = await this.repo.create({
       organizationId,
@@ -454,6 +464,16 @@ export class DevicesService {
     if (nextStoredStatus === 'DISCONNECTED') nextIsActive = false;
 
     const latestHeartbeat = deviceRow.heartbeats[0] ?? null;
+    if (!deviceRow.isActive && nextIsActive) {
+      const activeCount = await this.prisma.device.count({
+        where: { organizationId, deletedAt: null, isActive: true },
+      });
+      await this.quota.assertBelowLimit({
+        organizationId,
+        entitlementCode: 'devices.max',
+        currentValue: activeCount,
+      });
+    }
     const derived = this.health.deriveDeviceStatusAndHealth({
       isActive: nextIsActive,
       storedStatus: nextStoredStatus,

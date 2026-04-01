@@ -32,6 +32,8 @@ import type {
 } from './types/campaign.types';
 import { CampaignsRepository, type CampaignRow } from './campaigns.repository';
 import { parsePersistedTarget, toPersistedTargetJson } from './utils/campaign-target.util';
+import { BillingAccessService } from '../billing/billing-access.service';
+import { QuotaEnforcementService } from '../billing/quota-enforcement.service';
 
 function parseStrategy(s: string): 'strict' | 'empty' {
   return s === 'strict' ? 'strict' : 'empty';
@@ -47,6 +49,8 @@ export class CampaignsService {
     private readonly previewService: CampaignPreviewService,
     private readonly messageExecution: MessageExecutionService,
     private readonly audit: AuditLogService,
+    private readonly quota: QuotaEnforcementService,
+    private readonly billingAccess: BillingAccessService,
   ) {}
 
   private orgId(principal: AuthPrincipal): string {
@@ -135,6 +139,16 @@ export class CampaignsService {
     body: CreateCampaignBody,
   ): Promise<CampaignResponse> {
     const organizationId = this.orgId(principal);
+    const activeCampaigns = await this.repo.count({
+      organizationId,
+      deletedAt: null,
+      status: { in: ['DRAFT', 'SCHEDULED', 'PROCESSING', 'PAUSED'] },
+    });
+    await this.quota.assertBelowLimit({
+      organizationId,
+      entitlementCode: 'campaigns.active.max',
+      currentValue: activeCampaigns,
+    });
     const strategy = body.snapshotMissingVariableStrategy ?? 'empty';
     const target: CampaignTargetPersisted = {
       contactIds: body.target.contactIds,
@@ -436,6 +450,8 @@ export class CampaignsService {
   async startCampaign(principal: AuthPrincipal, campaignId: string): Promise<CampaignResponse> {
     const existing = await this.getOwnedCampaignRow(principal, campaignId);
     this.state.assertStartAllowed(existing.status);
+
+    await this.billingAccess.assertOrganizationMayUseOutboundMessaging(this.orgId(principal));
 
     const next = this.state.nextStatusStart();
     const row = await this.repo.update(campaignId, {

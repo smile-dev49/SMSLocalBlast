@@ -16,12 +16,31 @@ export class OrganizationsService {
     tx?: PrismaClientLike,
   ) {
     const client: PrismaClientLike = tx ?? this.prisma;
-    return client.organization.create({
+    const organization = await client.organization.create({
       data: {
         name: input.name,
         slug: input.slug,
       },
     });
+    const freePlan = await client.billingPlan.findUnique({
+      where: { code: 'free' },
+      select: { id: true },
+    });
+    if (freePlan) {
+      await client.organizationSubscription.upsert({
+        where: {
+          organizationId_provider: { organizationId: organization.id, provider: 'STRIPE' },
+        },
+        update: { billingPlanId: freePlan.id, status: 'ACTIVE' },
+        create: {
+          organizationId: organization.id,
+          provider: 'STRIPE',
+          billingPlanId: freePlan.id,
+          status: 'ACTIVE',
+        },
+      });
+    }
+    return organization;
   }
 
   async findBySlug(slug: string, tx?: PrismaClientLike) {

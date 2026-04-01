@@ -197,4 +197,93 @@ export class MessagesRepository {
       },
     });
   }
+
+  findDueRetries(now: Date, limit: number) {
+    return this.prisma.outboundMessage
+      .findMany({
+        where: {
+          status: 'FAILED',
+          nextRetryAt: { lte: now },
+        },
+        select: {
+          id: true,
+          organizationId: true,
+          retryCount: true,
+          maxRetries: true,
+        },
+        take: Math.max(1, limit * 2),
+        orderBy: { nextRetryAt: 'asc' },
+      })
+      .then((rows) => rows.filter((row) => row.retryCount < row.maxRetries).slice(0, limit));
+  }
+
+  findStuckDispatching(before: Date, limit: number) {
+    return this.prisma.outboundMessage.findMany({
+      where: {
+        status: 'DISPATCHING',
+        dispatchingAt: { lt: before },
+      },
+      select: {
+        id: true,
+        organizationId: true,
+        deviceId: true,
+        dispatchingAt: true,
+        retryCount: true,
+        maxRetries: true,
+      },
+      take: limit,
+      orderBy: { dispatchingAt: 'asc' },
+    });
+  }
+
+  findDispatchWithoutCallback(before: Date, limit: number) {
+    return this.prisma.outboundMessage.findMany({
+      where: {
+        status: 'DISPATCHED',
+        dispatchedAt: { lt: before },
+      },
+      select: {
+        id: true,
+        organizationId: true,
+        retryCount: true,
+        maxRetries: true,
+      },
+      take: limit,
+      orderBy: { dispatchedAt: 'asc' },
+    });
+  }
+
+  async finalizeProcessingCampaignsIfTerminal(): Promise<number> {
+    const campaigns = await this.prisma.campaign.findMany({
+      where: { status: 'PROCESSING', deletedAt: null },
+      select: { id: true },
+      take: 200,
+    });
+    let finalized = 0;
+    for (const campaign of campaigns) {
+      const statuses = await this.prisma.outboundMessage.findMany({
+        where: { campaignId: campaign.id },
+        select: { status: true },
+      });
+      if (statuses.length === 0) continue;
+      const allTerminal = statuses.every((row) =>
+        ['DELIVERED', 'FAILED', 'CANCELLED', 'SKIPPED'].includes(row.status),
+      );
+      if (!allTerminal) continue;
+      const deliveredCount = statuses.filter((row) => row.status === 'DELIVERED').length;
+      await this.prisma.campaign.update({
+        where: { id: campaign.id },
+        data: {
+          status: deliveredCount > 0 ? 'COMPLETED' : 'FAILED',
+          completedAt: new Date(),
+          deliveredCount,
+          failedCount: statuses.filter((row) => row.status === 'FAILED').length,
+          sentCount: statuses.filter((row) => row.status === 'SENT' || row.status === 'DELIVERED')
+            .length,
+        },
+      });
+      finalized += 1;
+    }
+    return finalized;
+  }
 }

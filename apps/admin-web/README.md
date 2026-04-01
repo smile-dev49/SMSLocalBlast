@@ -60,6 +60,7 @@ Route groups:
 | Contacts   | `/contacts`, `/contacts/[id]`   | `contacts.read`                                                                                 |
 | Templates  | `/templates`, `/templates/[id]` | `templates.read`                                                                                |
 | Operations | `/operations`                   | `operations.read`                                                                               |
+| Billing    | `/billing`                      | `billing.read` / `billing.write`                                                                |
 | Settings   | `/settings`                     | Sessions need `auth.sessions.read` / `auth.sessions.revoke`; logout-all needs `auth.logout_all` |
 
 Navigation items are filtered with `filterNavForPermissions` (`src/core/auth/permissions.ts`).
@@ -84,7 +85,7 @@ pnpm --filter @sms-localblast/admin-web build
 
 ## Current limitations
 
-- No billing, white-label installer, or chart-heavy analytics (by design for this milestone).
+- No white-label installer or chart-heavy analytics (by design for this milestone).
 - Operations queue summary endpoints are consumed as implemented by the API; org-scoping should match backend guarantees.
 - Campaign creation UI is intentionally minimal; Excel add-in is the primary authoring path.
 

@@ -32,4 +32,9 @@ describe('filterNavForPermissions', () => {
     const nav = filterNavForPermissions(ADMIN_NAV_ITEMS, ['devices.read']);
     expect(nav.some((i) => i.href === '/operations')).toBe(false);
   });
+
+  it('includes billing when billing.read granted', () => {
+    const nav = filterNavForPermissions(ADMIN_NAV_ITEMS, [PERMISSION.billingRead]);
+    expect(nav.some((i) => i.href === '/billing')).toBe(true);
+  });
 });

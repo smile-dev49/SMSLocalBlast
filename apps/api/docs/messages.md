@@ -1,39 +1,62 @@
 # Messages API
 
-Messages are outbound execution records generated from campaign recipients.
+Messages are outbound execution records generated from campaign recipients and executed through BullMQ workers.
 
-## Model highlights
+## Worker architecture
 
-- `OutboundMessage` stores the dispatch lifecycle, retry metadata, failures, timestamps, and optional campaign/device/contact links.
-- `MessageStatusEvent` stores transition history (`fromStatus -> toStatus`) for traceability.
-- `MessageGatewayEventReceipt` stores `(messageId,eventType,idempotencyKey)` to make gateway callbacks idempotent.
+- Queue: `messages`
+- Job names:
+  - `messages.dispatch`
+  - `messages.retry-due`
+  - `messages.recovery-sweep`
+  - `messages.dead-letter`
+- Processor: `MessageWorkerProcessor`
+- Producer abstraction: `QueueProducerService`
 
-## State machine (foundation)
+Dispatch processing (`messages.dispatch`):
 
-- `PENDING -> READY -> QUEUED -> DISPATCHING -> DISPATCHED -> SENT -> DELIVERED`
-- Any non-terminal can transition to `FAILED` or `CANCELLED`.
-- Manual retry reopens `FAILED`/`CANCELLED` to `READY`.
+1. load message by id
+2. no-op if stale/non-queued
+3. select eligible device (`MessageDeviceSelectionService`)
+4. either schedule retry/failure, or transition `QUEUED -> DISPATCHING -> DISPATCHED`
 
-## Failure codes
+## Idempotency guarantees
 
-`failureCode` is currently a string (documented constant strategy), allowing incremental extension:
+- Queue producer uses deterministic job ids (`dispatch:<messageId>`, singleton sweep jobs).
+- `enqueueDispatch` is stale-safe (`READY` only).
+- Worker processing no-ops if message no longer in expected status.
+- Gateway callbacks are receipt-deduped by `(messageId,eventType,idempotencyKey)`.
+- Retry reopen only runs for `FAILED`/`CANCELLED` rows.
 
-- `DEVICE_UNAVAILABLE`
-- `NO_ELIGIBLE_DEVICE`
-- `INVALID_RECIPIENT`
-- `RENDER_FAILED`
-- `QUEUE_ERROR`
-- `TRANSPORT_ERROR`
-- `DELIVERY_TIMEOUT`
-- `BLOCKED_CONTACT`
-- `OPTED_OUT_CONTACT`
-- `CAMPAIGN_CANCELLED`
+## Retry policy
 
-## Queue behavior
+Centralized in `MessageRetryPolicyService`:
 
-- `prepareOutboundMessagesForCampaign` creates `READY` records for `READY` campaign recipients and enqueues them.
-- Enqueue marks message `QUEUED` + creates status event.
-- Worker/placeholder processing currently claims and transitions to `DISPATCHED` in no-transport mode.
+- Exponential backoff with cap + jitter
+- Retry categories (`NO_ELIGIBLE_DEVICE`, `TRANSPORT_TEMPORARY`, `CALLBACK_TIMEOUT`, `QUEUE_STUCK`, `PERMANENT_FAILURE`)
+- `PERMANENT_FAILURE` is never retried
+- Retry execution is performed by repeatable `messages.retry-due` jobs
+
+## Dead-letter policy
+
+Dead-letter routing happens when dispatch worker attempts are exhausted (`MESSAGE_DEAD_LETTER_THRESHOLD`).
+
+- Message is marked `FAILED` with `failureCode=DEAD_LETTER`
+- Failure context is persisted in `OutboundMessage.metadata.deadLetter`
+- A `messages.dead-letter` queue item is emitted for replay/inspection workflows
+
+## Recovery rules
+
+`MessageRecoveryService` repeatable sweep:
+
+- `DISPATCHING` older than `MESSAGE_DISPATCH_STUCK_THRESHOLD_SECONDS`:
+  - retry if allowed
+  - otherwise fail terminally
+- `DISPATCHED` older than `MESSAGE_CALLBACK_TIMEOUT_SECONDS`:
+  - retry if allowed
+  - otherwise fail terminally
+- due failed retries (`nextRetryAt <= now`) are reopened and re-queued
+- campaigns stuck in `PROCESSING` are finalized when all outbound messages are terminal
 
 ## Endpoints
 
@@ -43,7 +66,7 @@ Messages are outbound execution records generated from campaign recipients.
 - `POST /api/v1/messages/:messageId/retry`
 - `POST /api/v1/messages/:messageId/cancel`
 
-## Gateway endpoints (device-auth only)
+Gateway endpoints (device-auth only):
 
 - `POST /api/v1/device-gateway/auth/login`
 - `POST /api/v1/device-gateway/dispatch/pull`

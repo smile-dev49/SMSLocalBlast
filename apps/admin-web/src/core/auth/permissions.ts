@@ -1,6 +1,8 @@
 /** Canonical permission codes used by the admin UI for gating actions and navigation. */
 export const PERMISSION = {
   operationsRead: 'operations.read',
+  billingRead: 'billing.read',
+  billingWrite: 'billing.write',
   devicesRead: 'devices.read',
   devicesManage: 'devices.manage',
   campaignsRead: 'campaigns.read',
@@ -35,6 +37,7 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = [
   { href: '/contacts', label: 'Contacts', requiredPermission: PERMISSION.contactsRead },
   { href: '/templates', label: 'Templates', requiredPermission: PERMISSION.templatesRead },
   { href: '/operations', label: 'Operations', requiredPermission: PERMISSION.operationsRead },
+  { href: '/billing', label: 'Billing', requiredPermission: PERMISSION.billingRead },
   { href: '/settings', label: 'Settings' },
 ] as const;
 

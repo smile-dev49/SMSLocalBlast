@@ -48,6 +48,9 @@ const PERMISSIONS: readonly PermissionDef[] = [
   { code: 'messages.retry', description: 'Retry outbound messages' },
   { code: 'messages.cancel', description: 'Cancel outbound messages' },
   { code: 'operations.read', description: 'Read operational execution visibility endpoints' },
+  { code: 'operations.write', description: 'Trigger safe operational recovery actions' },
+  { code: 'billing.read', description: 'Read organization billing state and plans' },
+  { code: 'billing.write', description: 'Manage organization billing sessions' },
 ];
 
 const ROLES: readonly RoleDef[] = [
@@ -101,6 +104,9 @@ const ROLES: readonly RoleDef[] = [
       'messages.retry',
       'messages.cancel',
       'operations.read',
+      'operations.write',
+      'billing.read',
+      'billing.write',
     ],
   },
   {
@@ -120,6 +126,7 @@ const ROLES: readonly RoleDef[] = [
       'campaigns.read',
       'campaigns.preview',
       'messages.read',
+      'billing.read',
     ],
   },
 ];

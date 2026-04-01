@@ -18,9 +18,9 @@ describe('hasPermission', () => {
 });
 
 describe('filterNavForPermissions', () => {
-  it('always includes dashboard and settings', () => {
+  it('always includes dashboard, help center, and settings', () => {
     const nav = filterNavForPermissions(ADMIN_NAV_ITEMS, []);
-    expect(nav.map((i) => i.href)).toEqual(['/dashboard', '/settings']);
+    expect(nav.map((i) => i.href)).toEqual(['/dashboard', '/docs', '/settings']);
   });
 
   it('includes operations when operations.read granted', () => {

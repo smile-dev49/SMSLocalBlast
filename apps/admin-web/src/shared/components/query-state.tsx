@@ -7,12 +7,15 @@ export function QueryState({
   error,
   isEmpty,
   emptyMessage,
+  emptyExtra,
   children,
 }: Readonly<{
   isLoading: boolean;
   error: unknown;
   isEmpty?: boolean;
   emptyMessage?: string;
+  /** Shown below empty message (e.g. doc links). */
+  emptyExtra?: ReactNode;
   children: ReactNode;
 }>): ReactElement {
   if (isLoading) {
@@ -32,7 +35,8 @@ export function QueryState({
   if (isEmpty) {
     return (
       <div className="rounded-lg border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-        {emptyMessage ?? 'No data yet.'}
+        <p>{emptyMessage ?? 'No data yet.'}</p>
+        {emptyExtra ? <div className="mt-3 text-xs">{emptyExtra}</div> : null}
       </div>
     );
   }

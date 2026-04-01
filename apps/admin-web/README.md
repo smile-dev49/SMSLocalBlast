@@ -19,11 +19,16 @@ From the monorepo root:
 pnpm install
 ```
 
+## Help Center (built-in docs)
+
+After login, open **Help Center** in the sidebar (`/docs`). Articles are typed content modules under `src/features/docs/content/` (no CMS). Topics include getting started, environment variables, Excel add-in and mobile gateway guides, campaigns/messages/workflows, billing, operations, API/Swagger pointers, troubleshooting, and an interactive **launch checklist** with optional live hints from the API.
+
 ## Environment variables
 
 | Variable                   | Purpose                                                                     |
 | -------------------------- | --------------------------------------------------------------------------- |
 | `NEXT_PUBLIC_API_BASE_URL` | REST base URL including `/api/v1` (default: `http://localhost:3000/api/v1`) |
+| `NEXT_PUBLIC_APP_URL`      | Browser origin of this admin app (default: `http://localhost:3001`)         |
 | `NEXT_PUBLIC_APP_NAME`     | Optional product label (default: `SMS LocalBlast Admin`)                    |
 
 Copy from `.env.example` if present, or export in your shell.
@@ -51,17 +56,18 @@ Route groups:
 
 ## Feature overview
 
-| Area       | Route                           | Permission highlights                                                                           |
-| ---------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Dashboard  | `/dashboard`                    | Aggregates allowed queries (devices/campaigns/messages/operations)                              |
-| Devices    | `/devices`, `/devices/[id]`     | `devices.read`; `devices.manage` for primary + quotas                                           |
-| Campaigns  | `/campaigns`, `/campaigns/[id]` | `campaigns.read`; `campaigns.execute` for start/pause/cancel                                    |
-| Messages   | `/messages`, `/messages/[id]`   | `messages.read`; `messages.retry` / `messages.cancel` for actions                               |
-| Contacts   | `/contacts`, `/contacts/[id]`   | `contacts.read`                                                                                 |
-| Templates  | `/templates`, `/templates/[id]` | `templates.read`                                                                                |
-| Operations | `/operations`                   | `operations.read`                                                                               |
-| Billing    | `/billing`                      | `billing.read` / `billing.write`                                                                |
-| Settings   | `/settings`                     | Sessions need `auth.sessions.read` / `auth.sessions.revoke`; logout-all needs `auth.logout_all` |
+| Area        | Route                           | Permission highlights                                                                           |
+| ----------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Help Center | `/docs`, `/docs/[slug]`         | No extra permission; launch checklist uses API hints when your role allows                      |
+| Dashboard   | `/dashboard`                    | Aggregates allowed queries (devices/campaigns/messages/operations)                              |
+| Devices     | `/devices`, `/devices/[id]`     | `devices.read`; `devices.manage` for primary + quotas                                           |
+| Campaigns   | `/campaigns`, `/campaigns/[id]` | `campaigns.read`; `campaigns.execute` for start/pause/cancel                                    |
+| Messages    | `/messages`, `/messages/[id]`   | `messages.read`; `messages.retry` / `messages.cancel` for actions                               |
+| Contacts    | `/contacts`, `/contacts/[id]`   | `contacts.read`                                                                                 |
+| Templates   | `/templates`, `/templates/[id]` | `templates.read`                                                                                |
+| Operations  | `/operations`                   | `operations.read`                                                                               |
+| Billing     | `/billing`                      | `billing.read` / `billing.write`                                                                |
+| Settings    | `/settings`                     | Sessions need `auth.sessions.read` / `auth.sessions.revoke`; logout-all needs `auth.logout_all` |
 
 Navigation items are filtered with `filterNavForPermissions` (`src/core/auth/permissions.ts`).
 

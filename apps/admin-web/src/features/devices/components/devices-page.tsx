@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 
@@ -47,7 +48,9 @@ export function DevicesPage(): ReactElement {
             Search
             <Input
               value={search}
-              onChange={(e) => { setSearch(e.target.value); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+              }}
               placeholder="Name or identifier"
             />
           </label>
@@ -108,6 +111,25 @@ export function DevicesPage(): ReactElement {
           error={query.error}
           isEmpty={query.data?.items.length === 0}
           emptyMessage="No devices match your filters."
+          emptyExtra={
+            <span className="text-slate-600 dark:text-slate-400">
+              Need an eligible sender? See{' '}
+              <Link
+                className="text-sky-700 underline dark:text-sky-400"
+                href="/docs/mobile-gateway"
+              >
+                Mobile gateway
+              </Link>{' '}
+              and{' '}
+              <Link
+                className="text-sky-700 underline dark:text-sky-400"
+                href="/docs/troubleshooting"
+              >
+                Troubleshooting
+              </Link>
+              .
+            </span>
+          }
         >
           {query.data ? <DevicesTable devices={query.data.items} /> : null}
         </QueryState>
@@ -117,7 +139,9 @@ export function DevicesPage(): ReactElement {
               type="button"
               variant="outline"
               disabled={page <= 1}
-              onClick={() => { setPage((p: number) => p - 1); }}
+              onClick={() => {
+                setPage((p: number) => p - 1);
+              }}
             >
               Previous
             </Button>
@@ -128,7 +152,9 @@ export function DevicesPage(): ReactElement {
               type="button"
               variant="outline"
               disabled={page >= query.data.totalPages}
-              onClick={() => { setPage((p: number) => p + 1); }}
+              onClick={() => {
+                setPage((p: number) => p + 1);
+              }}
             >
               Next
             </Button>

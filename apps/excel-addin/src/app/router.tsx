@@ -4,7 +4,8 @@ export type AppRoute =
   | 'contacts'
   | 'templates'
   | 'campaigns'
-  | 'settings';
+  | 'settings'
+  | 'help';
 
 export const appRoutes: AppRoute[] = [
   'dashboard',
@@ -13,4 +14,15 @@ export const appRoutes: AppRoute[] = [
   'templates',
   'campaigns',
   'settings',
+  'help',
 ];
+
+export const appRouteLabels: Record<AppRoute, string> = {
+  dashboard: 'Dashboard',
+  workbook: 'Workbook',
+  contacts: 'Contacts',
+  templates: 'Templates',
+  campaigns: 'Campaigns',
+  settings: 'Settings',
+  help: 'Help',
+};

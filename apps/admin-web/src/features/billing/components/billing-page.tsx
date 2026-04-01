@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 
 import { PERMISSION } from '@/core/auth/permissions';
@@ -34,6 +35,16 @@ export function BillingPage(): ReactElement {
   return (
     <RoutePermission permission={PERMISSION.billingRead}>
       <div className="space-y-4">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Help:{' '}
+          <Link className="text-sky-700 underline dark:text-sky-400" href="/docs/billing">
+            Billing guide
+          </Link>
+          {' · '}
+          <Link className="text-sky-700 underline dark:text-sky-400" href="/docs/troubleshooting">
+            Billing and errors
+          </Link>
+        </p>
         <Card className="p-4">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Current Subscription</h2>

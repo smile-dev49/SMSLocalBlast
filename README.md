@@ -6,24 +6,24 @@ This repository contains **infrastructure and scaffolding only** — business mo
 
 ## Repository layout
 
-| Path                   | Role                                                                              |
-| ---------------------- | --------------------------------------------------------------------------------- |
-| `apps/api`             | NestJS HTTP API — health check, config placeholder, `common/` + `modules/` layout |
-| `apps/admin-web`       | Next.js admin UI — App Router, Tailwind, placeholder dashboard                    |
-| `apps/excel-addin`     | React + Vite task pane **shell** (Office.js integration deferred)                 |
-| `apps/mobile-gateway`  | **Flutter scaffold** — README + `docs.md` only (no generated app)                 |
-| `packages/config`      | Shared strict `tsconfig` base                                                     |
-| `packages/types`       | Cross-app TypeScript types                                                        |
-| `packages/validation`  | Zod schemas / parsers                                                             |
-| `packages/constants`   | Non-secret shared constants                                                       |
-| `packages/utils`       | Pure utilities                                                                    |
-| `packages/ui`          | Presentational React primitives                                                   |
-| `infra/docker`         | Production-oriented Dockerfiles for API + admin                                   |
-| `infra/github-actions` | CI documentation (workflows live in `.github/workflows`)                          |
-| `docs/architecture`    | High-level system overview                                                        |
-| `docs/adr`             | Architecture Decision Record template                                             |
-| `docs/runbooks`        | Incident runbook template                                                         |
-| `scripts`              | Placeholder for automation entry points                                           |
+| Path                   | Role                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `apps/api`             | NestJS HTTP API — health check, config placeholder, `common/` + `modules/` layout     |
+| `apps/admin-web`       | Next.js admin UI — App Router, Tailwind, **Help Center** (`/docs`) + operator console |
+| `apps/excel-addin`     | React + Vite task pane **shell** (Office.js integration deferred)                     |
+| `apps/mobile-gateway`  | **Flutter scaffold** — README + `docs.md` only (no generated app)                     |
+| `packages/config`      | Shared strict `tsconfig` base                                                         |
+| `packages/types`       | Cross-app TypeScript types                                                            |
+| `packages/validation`  | Zod schemas / parsers                                                                 |
+| `packages/constants`   | Non-secret shared constants                                                           |
+| `packages/utils`       | Pure utilities                                                                        |
+| `packages/ui`          | Presentational React primitives                                                       |
+| `infra/docker`         | Production-oriented Dockerfiles for API + admin                                       |
+| `infra/github-actions` | CI documentation (workflows live in `.github/workflows`)                              |
+| `docs/architecture`    | High-level system overview                                                            |
+| `docs/adr`             | Architecture Decision Record template                                                 |
+| `docs/runbooks`        | Incident runbook template                                                             |
+| `scripts`              | Placeholder for automation entry points                                               |
 
 ## Prerequisites
 
@@ -75,6 +75,7 @@ Copy env samples before running services:
 
 - **Windows**: `next.config.ts` disables `output: 'standalone'` by default to avoid symlink errors during `next build`. Linux CI and Docker set `NEXT_STANDALONE_OUTPUT=true` (see `infra/docker/Dockerfile.admin-web`).
 - **Excel add-in**: Vite aliases `@sms-localblast/types` to **TypeScript source** so bundling does not rely on CJS named-export interop from `dist`. Runtime consumers (Nest) continue to use compiled `dist` outputs.
+- **Operator docs**: Admin web ships a built-in Help Center; the Excel add-in exposes a Help tab and deep-link to those docs via `VITE_ADMIN_HELP_URL`.
 
 ## Docker
 

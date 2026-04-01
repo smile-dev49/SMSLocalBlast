@@ -17,6 +17,10 @@ Production-grade Office.js taskpane foundation for Excel-first operations:
 3. Auth bootstrap calls `/auth/me` when token exists.
 4. App renders login or Fluent UI shell tabs.
 
+## Help tab
+
+The **Help** tab (task pane) includes a concise quick start, import/template tips, and a button to open the **admin web Help Center** in the browser. Set `VITE_ADMIN_HELP_URL` to your deployed admin docs base (default `http://localhost:3001/docs`).
+
 ## Environment
 
 Configure `.env`:
@@ -24,6 +28,7 @@ Configure `.env`:
 - `VITE_API_BASE_URL` (example `http://localhost:3000/api/v1`)
 - `VITE_APP_NAME`
 - `VITE_APP_ENV` (`dev|staging|prod`)
+- `VITE_ADMIN_HELP_URL` (optional; full URL to admin Help Center, e.g. `https://admin.example.com/docs`)
 
 ## Local development
 

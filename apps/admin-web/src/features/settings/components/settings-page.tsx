@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 
 import { hasPermission, PERMISSION } from '@/core/auth/permissions';
@@ -48,7 +49,10 @@ export function SettingsPage(): ReactElement {
       <div>
         <h1 className="text-2xl font-semibold">Settings</h1>
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Account, permissions, and active sessions.
+          Account, permissions, and active sessions.{' '}
+          <Link className="text-sky-700 underline dark:text-sky-400" href="/docs">
+            Help Center
+          </Link>
         </p>
       </div>
       <Card>
@@ -165,6 +169,7 @@ export function SettingsPage(): ReactElement {
           </CardHeader>
           <CardContent className="font-mono text-xs text-slate-600 dark:text-slate-400">
             <p>NEXT_PUBLIC_API_BASE_URL → {publicEnv.apiBaseUrl}</p>
+            <p>NEXT_PUBLIC_APP_URL → {publicEnv.appUrl}</p>
           </CardContent>
         </Card>
       ) : null}

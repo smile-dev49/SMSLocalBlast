@@ -73,6 +73,10 @@ export function ContactsImportScreen(): JSX.Element {
         Load worksheet rows
       </Button>
       <Text>Rows loaded: {snapshot?.rows.length ?? 0}</Text>
+      <Text size={200}>
+        Tip: phone column is required. If preview shows zero valid rows, confirm headers match your
+        mapping and that the sheet has data below the header row. See the Help tab for import notes.
+      </Text>
       <ColumnMappingForm headers={snapshot?.headers ?? []} onChange={setMapping} />
       <Field label="Create list name (optional)">
         <Input

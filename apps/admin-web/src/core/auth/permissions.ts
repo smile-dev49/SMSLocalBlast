@@ -31,6 +31,7 @@ export interface NavItem {
 
 export const ADMIN_NAV_ITEMS: readonly NavItem[] = [
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/docs', label: 'Help Center' },
   { href: '/devices', label: 'Devices', requiredPermission: PERMISSION.devicesRead },
   { href: '/campaigns', label: 'Campaigns', requiredPermission: PERMISSION.campaignsRead },
   { href: '/messages', label: 'Messages', requiredPermission: PERMISSION.messagesRead },

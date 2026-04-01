@@ -10,11 +10,12 @@ import {
 import { useState } from 'react';
 
 import type { AppRoute } from '@/app/router';
-import { appRoutes } from '@/app/router';
+import { appRouteLabels, appRoutes } from '@/app/router';
 import { useAuthStore } from '@/core/auth/auth-store';
 import { CampaignsScreen } from '@/features/campaigns/components/campaigns-screen';
 import { ContactsImportScreen } from '@/features/contacts/components/contacts-import-screen';
 import { DashboardScreen } from '@/features/dashboard/components/dashboard-screen';
+import { HelpScreen } from '@/features/help/components/help-screen';
 import { SettingsScreen } from '@/features/settings/components/settings-screen';
 import { TemplatesScreen } from '@/features/templates/components/templates-screen';
 import { WorkbookScreen } from '@/features/workbook/components/workbook-screen';
@@ -39,6 +40,8 @@ function renderRoute(route: AppRoute): JSX.Element {
       return <CampaignsScreen />;
     case 'settings':
       return <SettingsScreen />;
+    case 'help':
+      return <HelpScreen />;
   }
 }
 
@@ -58,10 +61,15 @@ export function AppShell(): JSX.Element {
           </div>
           <Button onClick={logout}>Logout</Button>
         </header>
-        <TabList selectedValue={route} onTabSelect={(_, d) => { setRoute(d.value as AppRoute); }}>
+        <TabList
+          selectedValue={route}
+          onTabSelect={(_, d) => {
+            setRoute(d.value as AppRoute);
+          }}
+        >
           {appRoutes.map((r) => (
             <Tab key={r} value={r}>
-              {r}
+              {appRouteLabels[r]}
             </Tab>
           ))}
         </TabList>

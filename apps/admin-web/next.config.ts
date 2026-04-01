@@ -6,8 +6,11 @@ const enableStandaloneOutput =
 
 const nextConfig: NextConfig = {
   ...(enableStandaloneOutput ? { output: 'standalone' as const } : {}),
-  transpilePackages: ['@sms-localblast/ui', '@sms-localblast/types'],
   reactStrictMode: true,
+  /** ESLint project references do not include co-located Vitest files; run `pnpm --filter @sms-localblast/admin-web lint` in CI. */
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
